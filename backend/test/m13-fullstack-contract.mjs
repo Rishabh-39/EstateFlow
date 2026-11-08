@@ -1,0 +1,33 @@
+/** Dependency-free, source-level guards for the Lovable ↔ NestJS integration.
+ * This is NOT a substitute for npm run build or PostgreSQL E2E testing. */
+import assert from 'node:assert/strict';
+import {readFileSync,readdirSync} from 'node:fs';
+import {resolve,dirname} from 'node:path';
+import {fileURLToPath} from 'node:url';
+const backend=resolve(dirname(fileURLToPath(import.meta.url)),'..');
+const frontend=resolve(backend,'../frontend');
+const read=p=>readFileSync(p,'utf8');
+const spec=JSON.parse(read(resolve(backend,'docs/openapi-m9.json')));
+const pkg=JSON.parse(read(resolve(backend,'package.json')));
+const api=read(resolve(frontend,'src/services/api/live.ts'));
+const http=read(resolve(frontend,'src/services/api/http.ts'));
+const migrate=read(resolve(backend,'sql/005_frontend_integration.sql'));
+let count=0;const check=(pass,msg)=>{assert.ok(pass,msg);count++;console.log('PASS',msg)};
+const op=(path,method)=>!!spec.paths[path]?.[method];
+check(pkg.version===spec.info.version,'API contract matches integrated backend version');
+check(op('/room-types','get')&&op('/room-types/{id}','get')&&op('/availability','get')&&op('/quotes','post'),'room browsing and server pricing endpoints are present');
+check(op('/booking-holds','post')&&op('/payments/mock/confirm','post')&&op('/bookings/reference/{reference}','get')&&op('/bookings/{id}/cancel','post'),'checkout, mock payment, confirmation and cancellation APIs are present');
+check(op('/staff/enquiries/{id}/extraction','patch')&&op('/staff/enquiries/{id}/routing','patch')&&op('/staff/drafts/{id}','patch'),'staff override and draft-review endpoints are present');
+check(op('/staff/enquiries/{id}/event-proposal','post')&&op('/staff/events/{id}/evaluations','post')&&op('/staff/event-approvals/{id}/request','post')&&op('/gm/event-approvals/{id}/decision','post'),'proposal, feasibility and human-approval APIs are distinct');
+check(spec.paths['/gm/event-approvals/{id}/decision'].post['x-required-role']==='GM','atomic event reservation requires GM approval');
+check(op('/staff/promo-codes','get')&&op('/staff/promo-codes/{code}','patch'),'rate-administration promo APIs are present');
+check(/guest_name/.test(migrate)&&/form_payload/.test(migrate)&&/active/.test(migrate),'database migration contains new frontend-backed fields');
+check(/const\s+liveApi:EstateApi/.test(api)&&/liveApi\s*;/.test(read(resolve(frontend,'src/services/api/index.ts'))),'frontend uses live backend adapter');
+check(/\/payments\/mock\/confirm/.test(api)&&/\/staff\/event-approvals\/\$\{eventId\}\/request/.test(api),'client uses mock payment and GM-reviewed event endpoints');
+check(/Authorization/.test(http)&&/sessionStorage/.test(http),'protected API requests carry session-scoped guest or staff tokens');
+check(/200|.*/.test(api)&&/simulate/.test(api.toLowerCase()),'browser-facing integration labels mock behavior');
+const routes=readdirSync(resolve(frontend,'src/routes')).filter(s=>s.endsWith('.tsx')).map(s=>read(resolve(frontend,'src/routes',s))).join('\n');
+check(!routes.includes('services/api/mock')&&!routes.includes('mockApi'),'screens never import prototype mock backend');
+check(routes.includes('evaluateEnquiry')&&routes.includes('approveReservation')&&routes.includes('getBooking'),'key guest and staff screens call live integration');
+check(!read(resolve(backend,'src/agent/agent.ts')).includes("allowedTools=['reserve'") && read(resolve(backend,'src/agent/agent.ts')).includes('DRAFT_ONLY_NO_AUTO_SEND'),'agent policy does not authorize direct booking or sending');
+console.log(`ALL ${count} ESTATEFLOW M13 SOURCE CONTRACT CHECKS PASSED (not a live database test)`);

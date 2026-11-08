@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+coverage/
+*.log
+.DS_Store
+# Local labelled customer examples and evaluation output; do not commit PII
+/data/local/
+/reports/
+
+# M12 local backups; may contain private booking/enquiry data
+/backups/
+*.dump
+*.backup

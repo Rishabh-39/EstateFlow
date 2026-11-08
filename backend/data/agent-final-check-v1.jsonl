@@ -1,0 +1,30 @@
+{"text": "Need a short-stay bungalow for a couple with breakfast included.", "label": "ROOM_BOOKING"}
+{"text": "Could I have two connected bedrooms for a family holiday?", "label": "ROOM_BOOKING"}
+{"text": "Please tell me the weekday cost of your most spacious villa.", "label": "ROOM_BOOKING"}
+{"text": "Is an accessible cottage available for the first week of March?", "label": "ROOM_BOOKING"}
+{"text": "Can we get a four-person accommodation package without meals?", "label": "ROOM_BOOKING"}
+{"text": "What is your cheapest guest suite for this coming weekend?", "label": "ROOM_BOOKING"}
+{"text": "What would it cost to host a 120-person marriage ceremony outdoors?", "label": "WEDDING"}
+{"text": "A small haldi and mehndi ceremony is planned for our relatives.", "label": "WEDDING"}
+{"text": "We are looking for a reception stage and a baraat welcome area.", "label": "WEDDING"}
+{"text": "Could the estate be booked for a destination wedding festivity?", "label": "WEDDING"}
+{"text": "The bride is planning a sangeet dinner for family and friends.", "label": "WEDDING"}
+{"text": "Need to organize a ring-exchange function and marriage banquet.", "label": "WEDDING"}
+{"text": "Our product managers need two breakout rooms for an offsite planning week.", "label": "CORPORATE_OFFSITE"}
+{"text": "Can you arrange a training retreat for 70 employees with meals?", "label": "CORPORATE_OFFSITE"}
+{"text": "We would like to host our internal design sprint at the property.", "label": "CORPORATE_OFFSITE"}
+{"text": "Is there a meeting hall with Wi-Fi for a corporate strategy session?", "label": "CORPORATE_OFFSITE"}
+{"text": "Planning a company awards event plus employee retreat for the weekend.", "label": "CORPORATE_OFFSITE"}
+{"text": "Need a workshop and presentation setup for our sales division.", "label": "CORPORATE_OFFSITE"}
+{"text": "Housekeeping behaved rudely and the night manager ignored our concerns.", "label": "COMPLAINT"}
+{"text": "The package price was misrepresented and we want reimbursement.", "label": "COMPLAINT"}
+{"text": "Our reservation was cancelled without notice and we need assistance.", "label": "COMPLAINT"}
+{"text": "Food quality was unsafe for our guests and caused illness.", "label": "COMPLAINT"}
+{"text": "There was theft in the parking lot and security refused to help.", "label": "COMPLAINT"}
+{"text": "Your front desk was hostile and the room was unclean.", "label": "COMPLAINT"}
+{"text": "Is there a nearby coffee museum worth visiting?", "label": "UNKNOWN"}
+{"text": "What are the check-in desk hours on public holidays?", "label": "UNKNOWN"}
+{"text": "Can your team supply directions from the bus stand?", "label": "UNKNOWN"}
+{"text": "I am a photographer interested in collaborating with the hotel.", "label": "UNKNOWN"}
+{"text": "Do you operate a shuttle for day-tour visitors?", "label": "UNKNOWN"}
+{"text": "Hello, please send general information about the property.", "label": "UNKNOWN"}

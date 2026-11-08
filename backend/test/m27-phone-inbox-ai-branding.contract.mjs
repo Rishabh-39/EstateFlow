@@ -1,0 +1,30 @@
+/** M27 source regression checks. Run full UI/backend tests and live browser checks on Mac. */
+import assert from 'node:assert/strict';
+import { existsSync,readFileSync } from 'node:fs';
+const read=(f)=>readFileSync(f,'utf8');
+const events=read('../frontend/src/routes/events.tsx');
+const inbox=read('../frontend/src/routes/staff.inbox.tsx');
+const backend=read('src/enquiries/enquiries.ts');
+const image='../frontend/src/assets/ai-concierge.png';
+let checks=0;
+function check(ok,detail){assert.ok(ok,detail);checks++;console.log('PASS:',detail)}
+check(events.includes('<Label htmlFor="ph">Phone</Label>'),'event form phone label contains no optional/required suffix');
+check(events.includes('type="tel"')&&events.includes('required aria-required="true"'),'phone input has required and mobile-friendly telephone semantics');
+check(events.includes('if (!phone ||')&&events.includes('e.push("Enter a valid phone number (10–15 digits).")'),'client-side validation prevents submission without valid phone');
+check(events.includes('else if (check(2)) submit.mutate()'),'submit remains gated on step-three validation');
+check(backend.includes("source==='WEB' && !chat && form && typeof form.type==='string'"),'event phone validation enforced on backend web event forms only');
+check(backend.includes("const digits=phone.replace(/\\D/g,'')")&&backend.includes("digits.length<10 || digits.length>15"),'backend rejects bad/missing phone');
+check(backend.includes('Valid conversation UUID required'),'non-event concierge flow preserved');
+check(inbox.includes('const bookingStatus: "all" | "confirmed" = cat === "Confirmed events" ? "confirmed" : "all"'),'booking filter is exclusive with All and categories');
+check(!inbox.includes('setBookingStatus(')&&!inbox.includes('>All enquiries</button>'),'duplicate All enquiries filter removed');
+check(inbox.includes('cat===\'All\'||cat===\'Confirmed events\'?null:codeByCategory[cat]'),'confirmed-event requests do not accidentally include an existing category filter');
+check(inbox.includes('confirmedCount')&&inbox.includes('Confirmed events ('),'confirmed event count retained in category row');
+check(inbox.includes('aria-label="Enquiries, scroll independently"'),'left list scroll preserved');
+check(inbox.includes('aria-label="Selected enquiry details, scroll independently"')&&inbox.includes('lg:overflow-y-auto lg:overscroll-contain'),'detail region scrolls independently on desktop');
+check(inbox.includes('lg:max-h-[min(760px,calc(100dvh-3rem))]'),'right panel height bounded to screen without adding blank height');
+check(inbox.includes('key={current.id} tabIndex={0} role="region"'),'newly selected detail scrolls to top and is keyboard-scrollable');
+check(inbox.includes('import conciergeImg from "@/assets/ai-concierge.png"')&&existsSync(image),'reuse original Lovable concierge logo asset');
+check(inbox.includes('className="size-5 shrink-0 rounded-full object-cover ring-1 ring-border" /> Local AI extraction'),'same logo appears beside AI extraction heading');
+check(inbox.includes('className="size-4 shrink-0 rounded-full object-cover ring-1 ring-border"/> Regenerate AI draft'),'same logo appears in Regenerate AI draft button');
+check(inbox.includes('10 per page')===false && backend.includes('const ENQUIRY_PAGE_SIZE = 10'),'existing 10-per-page database pagination unchanged');
+console.log(`ALL ${checks} M27 SOURCE CHECKS PASSED — live database/browser testing still required`);

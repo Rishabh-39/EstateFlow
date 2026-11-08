@@ -1,0 +1,47 @@
+/** Milestone 18 regression: source/SQL integrity plus pure deterministic helpers.
+ * NO PostgreSQL run here: execute npm run test:e2e against disposable estateflow_test. */
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
+import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url);
+const ts=require('typescript');
+const read=p=>readFileSync(resolve(process.cwd(),p),'utf8');
+let checks=0;
+const yes=(x,label)=>{assert.ok(x,label);checks++};
+const eq=(a,b,label)=>{assert.deepEqual(a,b,label);checks++};
+function helper(path){const src=read(path),compiled=ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;const exports={};new Function('exports',compiled)(exports);return exports;}
+const sql=read('sql/007_workflow_integrity.sql');
+yes(sql.includes('CREATE UNIQUE INDEX IF NOT EXISTS enquiries_conversation_id_idx'),'one persisted enquiry per chat session');
+yes(sql.includes('CREATE TABLE IF NOT EXISTS enquiry_messages'),'all customer messages stored under enquiry');
+yes(sql.includes('PRIMARY KEY (venue_code,event_date)'),'exclusive venue constraint on same date');
+yes(sql.includes('INSERT INTO exclusive_venue_claims')&&sql.includes('JOIN reservation_bundles'),'existing event reservations backfilled');
+yes(sql.includes('event_approval_reviews')&&sql.includes('GM_APPROVED')&&sql.includes('CLIENT_CONFIRMED'),'durable GM/client approval statuses');
+const events=read('src/events/events.ts');const approval=read('src/events/approval.ts');
+yes(events.includes('exclusive_venue_claims')&&/venue already reserved/i.test(events), 'venue conflict is evaluated and transactionally rejected');
+yes(events.includes('reserveInsideApproval')&&events.includes('ForbiddenException'), 'direct staff reserve disabled');
+yes(approval.includes('this.events.reserveInsideApproval(client,user,id)'),'GM reservation executes in same database transaction');
+yes(approval.includes("user.role!=='GM'")&&approval.includes("user.role!=='STAFF'"),'staff and GM authorization boundaries');
+yes(approval.includes('confirmedSent!==true')&&approval.includes('attested_by_staff_not_api_verified'),'no fake automated message-delivery claim');
+yes(approval.includes('SELECT status,counts FROM staff_plans'),'GM verifies staffing plan before reservation');
+const enq=read('src/enquiries/enquiries.ts');
+yes(enq.includes('this.queueAgent(q.id)')&&enq.includes("agentStatus:'PROCESSING'"),'DB receipt returned independently of slow Ollama');
+yes(enq.includes('conversation_id=$1 FOR UPDATE')&&enq.includes("message=message || chr(10) || $2::text"),'conversation appends to same record');
+yes(enq.includes('this.agent.process(id)')&&enq.includes('new Map'),'AI background processing per enquiry is serialized');
+yes(enq.includes('alignStaffCounts(old.counts'),'workbench corrections synchronize draft role counts');
+const staff=helper('src/shared/staff-sync.ts');
+for(const n of [0,1,7,15,22,140])eq(Object.values(staff.alignStaffCounts({waiters:7,chefs:2,decor:3,reception:2},n)).reduce((a,b)=>a+b,0),n,`staff roles sum exactly ${n}`);
+const generated=helper('src/agent/grounded-draft.ts');
+const data={type:'Wedding',startDate:'2026-11-18',endDate:'2026-11-25',guests:100,rooms:20,venue:'Wedding lawn',parking:30,dining:'All meals'};
+const draft=generated.formGroundedDraft('Aishwarya',data);
+yes(draft.includes('2026-11-18 to 2026-11-25')&&draft.includes('100 guests')&&draft.includes('20 rooms'),'form-backed draft acknowledges already given dates and quantities');
+yes(!/please (provide|share|confirm) (your )?(exact|preferred) dates/i.test(draft),'draft does not ask for already provided dates');
+yes(generated.redundantQuestion('Please provide your exact dates.',data),'reject redundant model clarification');
+const ui=read('../frontend/src/routes/events.tsx'),chat=read('../frontend/src/components/estate/ai-concierge.tsx'),workbench=read('../frontend/src/routes/staff.workbench.$enquiryId.tsx');
+yes(ui.includes('Other events')&&ui.includes('event-description')&&ui.includes('custom-event-name'),'original form now supports named other events and description');
+yes(!ui.includes('Phone (required)'),'phone remains optional');
+yes(chat.includes('estateflow-concierge-session')&&chat.includes('/enquiries/chat/advisory'),'one session ID and deferred conversational reply');
+yes(workbench.includes('recordClientConfirmation')&&workbench.includes("review.data?.status!=='GM_APPROVED'"),'Staff confirmation is gated after GM');
+yes(read('../frontend/src/routes/gm.index.tsx').includes('EventBundles'),'GM dashboard retains existing layout and adds event approval');
+yes(read('../frontend/src/routes/staff.inbox.tsx').includes('StatusChip>{e.status}'),'inbox displays persisted approval statuses');
+console.log(`PASS EstateFlow M18 privacy, fast intake, exclusivity, GM controls, staff consistency and grounded drafts (${checks} checks; DB execution pending)`);

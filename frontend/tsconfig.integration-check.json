@@ -1,0 +1,8 @@
+{
+ "compilerOptions": {
+  "target":"ES2022","lib":["ES2022","DOM","DOM.Iterable"],"module":"ESNext",
+  "moduleResolution":"bundler","baseUrl":".","paths":{"@/*":["src/*"]},
+  "strict":true,"skipLibCheck":true,"noEmit":true
+ },
+ "include":["src/services/api/live.ts","src/services/api/http.ts","src/services/api/types.ts","src/lib/estate/types.ts","src/lib/estate/staffing.ts","../_checks/integration-shims.d.ts"]
+}

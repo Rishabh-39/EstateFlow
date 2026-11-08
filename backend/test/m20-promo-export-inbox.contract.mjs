@@ -1,0 +1,41 @@
+/** Source-level regression checks; independent of PostgreSQL / local Qwen.
+ * These checks NEVER claim browser or live-DB success. */
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const src=p=>readFileSync(p,'utf8');
+const sql=src('sql/008_promotions_scope.sql');
+const rooms=src('src/rooms/rooms.ts');
+const staff=src('src/staff/staff.ts');
+const enquiry=src('src/enquiries/enquiries.ts');
+const api=src('../frontend/src/services/api/live.ts');
+const checkout=src('../frontend/src/routes/book.$roomId.tsx');
+const rates=src('../frontend/src/routes/staff.rates.tsx');
+const exportPage=src('../frontend/src/routes/staff.export.tsx');
+const inbox=src('../frontend/src/routes/staff.inbox.tsx');
+const concierge=src('../frontend/src/components/estate/ai-concierge.tsx');
+let n=0;
+function pass(condition, why){assert.ok(condition,why);n++;console.log('PASS',why)}
+pass(sql.includes('ADD COLUMN IF NOT EXISTS room_type_id uuid REFERENCES room_types(id)'), 'Promos gain nullable room scope with FK');
+pass(sql.includes('NULL room_type_id'), 'Historic promos remain both-category until staff scopes them');
+pass(rooms.includes("@Get('promotions/eligible')"), 'Public eligibility endpoint exists');
+pass(rooms.includes('room_type_id IS NULL OR room_type_id=$1::uuid'), 'Public offers filtered by room scope');
+pass(rooms.includes('room_type_id IS NULL OR room_type_id=$4::uuid'), 'Actual quote revalidates same room scope');
+pass(rooms.includes('uses<max_uses')&&rooms.includes('valid_to>=$3'), 'Exhaustion and full-stay dates enforced');
+pass(staff.includes('room_type_id FROM promo_codes'), 'Staff sees stored promo scopes');
+pass(staff.includes('room_type_id=$')&&staff.includes('discount_percent=$'), 'Staff can edit scope and discount');
+pass(api.includes('eligiblePromotions(roomTypeId')&&checkout.includes('eligiblePromotions(roomId'), 'Checkout reads backend-eligible promos');
+pass(checkout.includes('await liveQuote(roomId,s.checkIn,s.checkOut,s.guests,code)'), 'Checkout does not trust display-only eligibility');
+pass(rates.includes('newScope')&&rates.includes('currentRoomId')&&rates.includes('Both accommodation types'), 'Existing rates tab manages independent room scoped offers');
+pass(staff.includes('async bookingPreview(')&&staff.includes('async bookingsCsv('), 'Preview and CSV use shared PostgreSQL dataset');
+pass(staff.includes("mode==='stay'")&&staff.includes("h.check_out>$1::date"), 'Stay-day filter uses exclusive checkout date');
+pass(staff.includes("@Get('bookings/preview')"), 'Staff-only preview endpoint exists');
+pass(exportPage.includes('bookingPreview(date,mode,kind)')&&exportPage.includes('bookingExport(date,mode,kind)'), 'Preview and download share the same date and filter');
+pass(exportPage.includes('preview.data.rows.map(')&&exportPage.includes('Excel-compatible CSV'), 'Guest booking rows are previewed before export');
+pass(enquiry.includes("@Get('enquiries/paged')")&&enquiry.includes('const ENQUIRY_PAGE_SIZE = 10')&&enquiry.includes('LIMIT $4 OFFSET $3')&&enquiry.includes('Math.ceil(total/ENQUIRY_PAGE_SIZE)'), 'Inbox uses bounded database pagination at 10 per page');
+pass(enquiry.includes('row_number() OVER(ORDER BY e.created_at DESC,e.id DESC)'), 'Selected enquiry can restore its page');
+pass(api.includes('listEnquiriesPaged(')&&inbox.includes('listEnquiriesPaged('), 'Inbox uses paged API rather than all enquiries');
+pass(inbox.includes('Page {page} of {pages}')&&inbox.includes('q.data?.pageSize??10'), 'Page navigation and server page-size count appear in UI');
+pass(inbox.includes('grid items-start gap-6')&&inbox.includes('self-start space-y-6'), 'Enquiry detail card height follows its content, not the enquiry list height');
+pass(concierge.includes('Preparing a tailored response')&&!concierge.includes('result.quickReply||'), 'Concierge shows pending state instead of a misleading generic answer');
+pass(concierge.includes("We could not")||concierge.includes('A tailored AI response is unavailable'), 'AI failure produces truthful fallback');
+console.log(`ALL ${n} M20 SOURCE CONTRACT CHECKS PASSED (not live DB/browser tests)`);

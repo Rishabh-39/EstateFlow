@@ -1,0 +1,100 @@
+{"text": "We are arranging a wedding for 250 guests in February", "label": "WEDDING"}
+{"text": "Looking for an elegant marriage venue and reception lawn", "label": "WEDDING"}
+{"text": "Need wedding packages for my daughter", "label": "WEDDING"}
+{"text": "Our wedding ceremony needs a lawn and overnight rooms", "label": "WEDDING"}
+{"text": "Can your property host a wedding celebration", "label": "WEDDING"}
+{"text": "Reception hall for 200 guests and banquet dining", "label": "WEDDING"}
+{"text": "Destination wedding for my brother in Chikmagalur", "label": "WEDDING"}
+{"text": "Are wedding services and floral decoration available", "label": "WEDDING"}
+{"text": "Need 35 rooms and lawn for a two night wedding", "label": "WEDDING"}
+{"text": "Planning an engagement ceremony and reception in the resort", "label": "WEDDING"}
+{"text": "Please share wedding menu and venue details", "label": "WEDDING"}
+{"text": "We want an outdoor wedding at your estate", "label": "WEDDING"}
+{"text": "Marriage party venue with overnight stay for family", "label": "WEDDING"}
+{"text": "Wedding package with dining and accommodation", "label": "WEDDING"}
+{"text": "Can you arrange a pre wedding event and reception", "label": "WEDDING"}
+{"text": "I would like to reserve lawn for wedding rituals", "label": "WEDDING"}
+{"text": "Need destination marriage function dates next February", "label": "WEDDING"}
+{"text": "Inquiry about wedding planning services in February 2027", "label": "WEDDING"}
+{"text": "Reception dinner and wedding lawn for 180 guests", "label": "WEDDING"}
+{"text": "How much for a wedding at your plantation resort", "label": "WEDDING"}
+{"text": "Is a villa free 14-16 Nov for 2 adults and a child", "label": "ROOM_BOOKING"}
+{"text": "Can I book one suite for this Saturday night", "label": "ROOM_BOOKING"}
+{"text": "Room availability for two adults next weekend", "label": "ROOM_BOOKING"}
+{"text": "I want to reserve a plantation villa for my family", "label": "ROOM_BOOKING"}
+{"text": "What is the nightly cost for your deluxe room", "label": "ROOM_BOOKING"}
+{"text": "Need an estate room for three nights", "label": "ROOM_BOOKING"}
+{"text": "Please check stay rates for November 20", "label": "ROOM_BOOKING"}
+{"text": "Can I book two villas for four people", "label": "ROOM_BOOKING"}
+{"text": "Looking for rooms for our holiday this month", "label": "ROOM_BOOKING"}
+{"text": "Are any rooms vacant during Christmas", "label": "ROOM_BOOKING"}
+{"text": "How do I make a direct room reservation", "label": "ROOM_BOOKING"}
+{"text": "Need check in and checkout for a room booking", "label": "ROOM_BOOKING"}
+{"text": "Please send accommodation tariffs for two adults", "label": "ROOM_BOOKING"}
+{"text": "We need a room with a king bed and breakfast", "label": "ROOM_BOOKING"}
+{"text": "Is a garden villa available from 2027-02-14 to 2027-02-16", "label": "ROOM_BOOKING"}
+{"text": "I want a two night stay in a beautiful villa", "label": "ROOM_BOOKING"}
+{"text": "Can I reserve a family room for 4 guests", "label": "ROOM_BOOKING"}
+{"text": "How much does the room cost per night", "label": "ROOM_BOOKING"}
+{"text": "I would like to make a stay reservation", "label": "ROOM_BOOKING"}
+{"text": "Do you have any plantation rooms open on Friday", "label": "ROOM_BOOKING"}
+{"text": "Team of 45 wants a January offsite with a conference hall", "label": "CORPORATE_OFFSITE"}
+{"text": "Plan a company leadership retreat with meeting rooms", "label": "CORPORATE_OFFSITE"}
+{"text": "Our office needs a team offsite with projector", "label": "CORPORATE_OFFSITE"}
+{"text": "Are there corporate conference packages at the resort", "label": "CORPORATE_OFFSITE"}
+{"text": "We need a board meeting venue and rooms for staff", "label": "CORPORATE_OFFSITE"}
+{"text": "Corporate workshop for our sales team in January", "label": "CORPORATE_OFFSITE"}
+{"text": "Book a team building retreat with presentation facilities", "label": "CORPORATE_OFFSITE"}
+{"text": "Need auditorium and conference space for 35 employees", "label": "CORPORATE_OFFSITE"}
+{"text": "We are organizing an annual strategy offsite", "label": "CORPORATE_OFFSITE"}
+{"text": "Pricing for corporate retreat with meals and meeting rooms", "label": "CORPORATE_OFFSITE"}
+{"text": "Arrange a work retreat for a group of colleagues", "label": "CORPORATE_OFFSITE"}
+{"text": "Need a meeting space and breakout rooms for executives", "label": "CORPORATE_OFFSITE"}
+{"text": "Would like a team event with a projector and wifi", "label": "CORPORATE_OFFSITE"}
+{"text": "Our startup needs an offsite for all employees", "label": "CORPORATE_OFFSITE"}
+{"text": "Planning a training workshop at your resort", "label": "CORPORATE_OFFSITE"}
+{"text": "Corporate annual planning away day with conference hall", "label": "CORPORATE_OFFSITE"}
+{"text": "Sales kickoff corporate event with business sessions", "label": "CORPORATE_OFFSITE"}
+{"text": "Does the resort offer meeting room rental for teams", "label": "CORPORATE_OFFSITE"}
+{"text": "Can you host a leadership conference with overnight stay", "label": "CORPORATE_OFFSITE"}
+{"text": "We would like to run a team building event outdoors", "label": "CORPORATE_OFFSITE"}
+{"text": "I want to complain about a dirty bathroom", "label": "COMPLAINT"}
+{"text": "Refund requested due to terrible service", "label": "COMPLAINT"}
+{"text": "The staff behaved rudely please escalate this complaint", "label": "COMPLAINT"}
+{"text": "I had a bad stay and want management help", "label": "COMPLAINT"}
+{"text": "There is an issue with the reservation charge", "label": "COMPLAINT"}
+{"text": "The property room was not clean and I am upset", "label": "COMPLAINT"}
+{"text": "My booking was cancelled without informing me", "label": "COMPLAINT"}
+{"text": "We had an unsafe incident during the stay", "label": "COMPLAINT"}
+{"text": "The food quality was horrible and I need a response", "label": "COMPLAINT"}
+{"text": "Our invoice has an overcharge and needs correction", "label": "COMPLAINT"}
+{"text": "I need a refund for last nights room", "label": "COMPLAINT"}
+{"text": "Please report hotel staff misconduct", "label": "COMPLAINT"}
+{"text": "The shower is broken and nobody helps", "label": "COMPLAINT"}
+{"text": "We are unhappy with the poor service", "label": "COMPLAINT"}
+{"text": "The bill contains a fraudulent charge", "label": "COMPLAINT"}
+{"text": "The service was unacceptable and I want to speak to GM", "label": "COMPLAINT"}
+{"text": "Guest experienced harassment on the property", "label": "COMPLAINT"}
+{"text": "Our reservation was mishandled please resolve the issue", "label": "COMPLAINT"}
+{"text": "The swimming pool was dirty during our stay", "label": "COMPLAINT"}
+{"text": "I have a serious grievance regarding my stay", "label": "COMPLAINT"}
+{"text": "Hello could you please contact me", "label": "UNKNOWN"}
+{"text": "What is the address of the property", "label": "UNKNOWN"}
+{"text": "Tell me about your location", "label": "UNKNOWN"}
+{"text": "Do you have wifi", "label": "UNKNOWN"}
+{"text": "Is there a phone number for reception", "label": "UNKNOWN"}
+{"text": "Good morning I have a question", "label": "UNKNOWN"}
+{"text": "Can you share a brochure", "label": "UNKNOWN"}
+{"text": "What activities are nearby", "label": "UNKNOWN"}
+{"text": "I am looking for some general information", "label": "UNKNOWN"}
+{"text": "Do you have a shuttle from town", "label": "UNKNOWN"}
+{"text": "Please send your contact details", "label": "UNKNOWN"}
+{"text": "Are pets permitted on the property", "label": "UNKNOWN"}
+{"text": "Where can I find the resort on a map", "label": "UNKNOWN"}
+{"text": "Would like to know your opening hours", "label": "UNKNOWN"}
+{"text": "Is the pool heated", "label": "UNKNOWN"}
+{"text": "Is the resort near the coffee plantation", "label": "UNKNOWN"}
+{"text": "Can you tell me about nearby sightseeing", "label": "UNKNOWN"}
+{"text": "Please call me about a general question", "label": "UNKNOWN"}
+{"text": "Is there a restaurant on the premises", "label": "UNKNOWN"}
+{"text": "Could someone from support reach me", "label": "UNKNOWN"}

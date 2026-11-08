@@ -1,0 +1,197 @@
+openapi: 3.0.3
+info:
+  title: EstateFlow Milestone 4 — Staff Operations API Addendum
+  version: 0.4.0
+  description: >
+    Additional Milestone 4 routes. This document supplements (does not replace)
+    the existing EstateFlow API specification. All routes require staff/GM JWT.
+servers:
+  - url: http://localhost:4000
+security:
+  - BearerAuth: []
+paths:
+  /staff/overview:
+    get:
+      operationId: getOperationsOverview
+      tags: [Staff Operations]
+      summary: Read aggregate operational counts without personal data
+      parameters:
+        - name: date
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: Defaults to the current date in Asia/Kolkata.
+      responses:
+        '200':
+          description: Current operational counts
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OperationsOverview'
+        '400':
+          description: Invalid date
+        '401':
+          description: No valid token
+        '403':
+          description: Staff or GM role required
+  /staff/events:
+    get:
+      operationId: listStaffEvents
+      tags: [Event Feasibility]
+      summary: List event proposals and confirmed resource bundles
+      parameters:
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PROPOSED, RESERVED]
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            maximum: 10000
+            default: 0
+      responses:
+        '200':
+          description: Paginated event requests
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, total, limit, offset]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EventListItem'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '400':
+          description: Invalid filters
+        '401':
+          description: No valid token
+        '403':
+          description: Staff or GM role required
+  /staff/enquiries/{id}/event-proposal:
+    post:
+      operationId: createEventFromReviewedEnquiry
+      tags: [Event Feasibility]
+      summary: Human-reviewed conversion of a wedding/offsite enquiry to an event proposal
+      description: >
+        This is a STAFF action, not an AI tool. All required values must be
+        staff-verified. It creates a PROPOSED event with no resource allocations.
+        Duplicate proposals and complaint-escalated enquiries are rejected.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StaffEventProposalRequest'
+      responses:
+        '201':
+          description: Proposal created; no resources reserved
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [event, requiresApproval, reserved]
+                properties:
+                  event:
+                    $ref: '#/components/schemas/EventListItem'
+                  requiresApproval:
+                    type: boolean
+                    enum: [true]
+                  reserved:
+                    type: boolean
+                    enum: [false]
+        '400':
+          description: Invalid event requirement input
+        '401':
+          description: No valid token
+        '403':
+          description: Staff or GM role required
+        '404':
+          description: Enquiry not found
+        '409':
+          description: Duplicate proposal or complaint/unsupported category
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    OperationsOverview:
+      type: object
+      required: [date, counts, asOf]
+      properties:
+        date:
+          type: string
+          format: date
+        asOf:
+          type: string
+          format: date-time
+        counts:
+          type: object
+          required: [open_enquiries,gm_escalations,unsorted_enquiries,proposed_events,reserved_events,arrivals,departures]
+          properties:
+            open_enquiries: {type: integer}
+            gm_escalations: {type: integer}
+            unsorted_enquiries: {type: integer}
+            proposed_events: {type: integer}
+            reserved_events: {type: integer}
+            arrivals: {type: integer}
+            departures: {type: integer}
+    EventListItem:
+      type: object
+      required: [id, title, status, event_date, check_in, check_out, guests, rooms_required]
+      properties:
+        id: {type: string, format: uuid}
+        title: {type: string}
+        event_date: {type: string, format: date}
+        check_in: {type: string, format: date}
+        check_out: {type: string, format: date}
+        guests: {type: integer}
+        rooms_required: {type: integer}
+        status: {type: string, enum: [PROPOSED, RESERVED]}
+        enquiry_id: {type: string, format: uuid, nullable: true}
+        enquiry_ref: {type: string, nullable: true}
+    StaffEventProposalRequest:
+      type: object
+      additionalProperties: false
+      required: [title,eventDate,checkIn,checkOut,guests,roomsRequired,diningGuests,parkingSpaces,eventStaff,venueCode]
+      properties:
+        title: {type: string, maxLength: 160}
+        eventDate: {type: string, format: date}
+        checkIn: {type: string, format: date}
+        checkOut: {type: string, format: date}
+        guests: {type: integer, minimum: 1}
+        roomsRequired: {type: integer, minimum: 0, maximum: 76}
+        diningGuests: {type: integer, minimum: 1}
+        parkingSpaces: {type: integer, minimum: 1}
+        eventStaff: {type: integer, minimum: 1}
+        venueCode: {type: string, enum: [LAWN]}

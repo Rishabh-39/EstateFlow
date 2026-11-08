@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import { join } from 'node:path';
+import { readFileSync } from 'node:fs';
+import { EXPECTED_ROOM_UNITS, REQUIRED_RESOURCES, validateDemoTarget, validateBackupFilename, assessReviewerSnapshot, safeReport } from '../scripts/m12-operations-core.mjs';
+const root=process.cwd();let n=0;
+function check(assertion,label){assertion();console.log(`PASS: ${label}`);n++;}
+const base={DB_NAME:'estateflow',DB_HOST:'localhost',NODE_ENV:'development'};
+const example={activeRoomUnits:76,roomTypes:2,demoRateDays:4,demoInventoryDays:4,
+ resourceCodes:['LAWN','DINING','PARKING','EVENT_STAFF'],demoResourceSlots:4,staffCount:1,gmCount:1,guestCount:1,sampleEventCount:1};
+check(()=>assert.equal(EXPECTED_ROOM_UNITS,76),'Reviewer demo expects 76 total active physical units');
+check(()=>assert.equal(REQUIRED_RESOURCES.length,4),'All four operational resource categories included');
+check(()=>assert.equal(validateDemoTarget(base,'check').database,'estateflow'),'Local demo database accepted');
+check(()=>assert.equal(validateDemoTarget({NODE_ENV:'development'},'check').database,'estateflow'),'Default local database accepted');
+check(()=>assert.throws(()=>validateDemoTarget({...base,DB_NAME:'estateflow_test'},'check'),/requires DB_NAME/),'Destructive E2E database is not a backup target');
+check(()=>assert.throws(()=>validateDemoTarget({...base,DB_NAME:'postgres'},'check'),/requires DB_NAME/),'postgres maintenance database refused');
+check(()=>assert.throws(()=>validateDemoTarget({...base,NODE_ENV:'production'},'check'),/disabled in production/),'Reviewer demos blocked in production');
+check(()=>assert.throws(()=>validateDemoTarget({...base,DB_HOST:'db.example.com'},'check'),/local PostgreSQL/),'Remote database refused');
+check(()=>assert.equal(validateDemoTarget({...base,DB_HOST:'127.0.0.1'},'check').database,'estateflow'),'Loopback address accepted');
+check(()=>assert.equal(validateBackupFilename('backups/test.dump',root),join(root,'backups','test.dump')),'Backup stays under ignored backups folder');
+check(()=>assert.throws(()=>validateBackupFilename('README.dump',root),/inside the local backups/),'Backup outside ignored directory refused');
+check(()=>assert.throws(()=>validateBackupFilename('backups/../README.dump',root),/inside the local backups/),'Backup traversal blocked');
+check(()=>assert.throws(()=>validateBackupFilename('backups/a.txt',root),/\.dump/),'Wrong backup extension rejected');
+check(()=>assert.throws(()=>validateBackupFilename('',root),/filename/),'Missing backup filename rejected');
+check(()=>assert.equal(assessReviewerSnapshot(example).ready,true),'Fully seeded demo passes readiness');
+check(()=>assert.equal(assessReviewerSnapshot({...example,activeRoomUnits:75}).ready,false),'Missing room unit fails readiness');
+check(()=>assert.equal(assessReviewerSnapshot({...example,resourceCodes:['LAWN','DINING','PARKING']}).ready,false),'Missing resource class fails readiness');
+check(()=>assert.equal(assessReviewerSnapshot({...example,demoResourceSlots:0}).ready,false),'Missing resource slots fail readiness');
+check(()=>assert.equal(assessReviewerSnapshot({...example,staffCount:0}).ready,false),'Missing reviewer staff login fails readiness');
+check(()=>assert.equal(assessReviewerSnapshot({...example,sampleEventCount:0}).ready,false),'Missing wedding sample fails readiness');
+check(()=>assert.equal(assessReviewerSnapshot({...example,demoRateDays:0}).ready,false),'Missing room prices fail readiness');
+check(()=>assert.equal(assessReviewerSnapshot({...example,demoInventoryDays:0}).ready,false),'Missing website allotments fail readiness');
+check(()=>assert.equal(assessReviewerSnapshot({...example,gmCount:0}).ready,false),'Missing GM login fails readiness');
+check(()=>{const safe=safeReport({...assessReviewerSnapshot(example),release:'0.12.0',checkedAt:'2026-11-05T00:00:00Z',contact_email:'not-to-be-reported@example.com'});assert.ok(!JSON.stringify(safe).includes('@'));},'Readiness report excludes arbitrary guest contact data');
+check(()=>assert.match(readFileSync('scripts/seed.ts','utf8'),/Demo seed blocked in production/),'Synthetic-demo seeding blocked in production');
+check(()=>assert.ok(readFileSync('.gitignore','utf8').includes('/backups/')),'Backup archive directory ignored by Git');
+check(()=>assert.ok(readFileSync('scripts/reviewer-readiness-m12.mjs','utf8').includes('BEGIN READ ONLY')),'Reviewer database inspection starts read-only transaction');
+console.log(`ALL ${n} ESTATEFLOW M12 OPERATIONS CHECKS PASSED`);

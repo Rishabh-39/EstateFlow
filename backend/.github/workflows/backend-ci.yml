@@ -1,0 +1,53 @@
+name: EstateFlow Backend CI
+on:
+  push:
+  pull_request:
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: rishabh
+          POSTGRES_PASSWORD: ci_only_password_not_a_real_secret
+          POSTGRES_DB: estateflow_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U rishabh -d estateflow_test"
+          --health-interval 10s --health-timeout 5s --health-retries 5
+    env:
+      NODE_ENV: test
+      PORT: 4000
+      CORS_ORIGIN: http://localhost:5173
+      DB_HOST: localhost
+      DB_PORT: 5432
+      DB_NAME: estateflow_test
+      DB_USER: rishabh
+      DB_PASSWORD: ci_only_password_not_a_real_secret
+      JWT_SECRET: ci_only_random_example_secret_1234567890abcdef1234567890
+      AGENT_MODEL_PATH: model/resort-intent-model.json
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install dependencies and verify patched Multer
+        run: |
+          if test -f package-lock.json; then npm ci; else npm install; fi
+          npm run security:verify
+          npm audit --omit=dev --audit-level=high
+      - name: Build, contracts, and unit tests
+        run: |
+          npm run contract:m9
+          npm run test:m9
+          npm run test:m10
+          npm run test:m11
+          npm run test:m12
+          npm run test:m8
+          npm run test:m7
+          npm run test:m6
+          npm run build
+      - name: PostgreSQL-backed concurrency and agent E2E tests
+        run: npm run test:e2e

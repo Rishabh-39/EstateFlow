@@ -1,0 +1,26 @@
+/** M26 source regression; run full frontend build and browser tests on Mac. */
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+const read=(p)=>readFileSync(p,'utf8');
+const inbox=read('../frontend/src/routes/staff.inbox.tsx');
+const allocation=read('../frontend/src/routes/staff.allocation.tsx');
+const adapter=read('../frontend/src/services/api/live.ts');
+const api=read('src/enquiries/enquiries.ts');
+let n=0;const check=(condition,description)=>{assert.ok(condition,description);n++;console.log('PASS',description);};
+check(inbox.includes('lg:sticky lg:top-6') && allocation.includes('lg:sticky lg:top-6'),'both left lists remain sticky on larger screens');
+check(inbox.includes('lg:h-[min(760px,calc(100dvh-3rem))]')&&allocation.includes('lg:h-[min(760px,calc(100dvh-3rem))]'),'both left panels have viewport-bounded height');
+check(inbox.includes('overflow-y-auto overscroll-contain')&&allocation.includes('overflow-y-auto overscroll-contain'),'independent internal list scrolling on both pages');
+check(inbox.includes('lg:flex-1')&&allocation.includes('lg:flex-1'),'scrollable lists take the available left-panel height');
+check(inbox.includes('shrink-0 items-center justify-between') && allocation.includes('shrink-0 items-center justify-between'),'pagination stays outside scrolling area');
+check(inbox.includes('aria-label="Enquiry pagination"')&&allocation.includes('aria-label="Staff allocation pagination"'),'pagination is accessible on both screens');
+check(api.includes('const ENQUIRY_PAGE_SIZE = 10') && allocation.includes('10 per page'),'inbox and allocation page size limited to 10');
+check(api.includes("e.category IN ('WEDDING','CORPORATE_OFFSITE','OTHER_EVENT')")&&api.includes('eventOnly'),'event-only filter is applied server-side before pagination');
+check(adapter.includes('eventOnly:eventOnly?\'true\':undefined')&&allocation.includes('listEnquiriesPaged(page, null, "", undefined, "all", true)'),'Staff Allocation requests correctly filtered paginated events');
+check(allocation.includes('q.data?.pages')&&allocation.includes('q.data?.total'),'Staff Allocation pagination has live count and pages');
+check(allocation.includes('setSel(null); setPage(actualPage - 1)')&&allocation.includes('setSel(null); setPage(actualPage + 1)'),'changing allocation page resets selection to that page');
+check(allocation.includes('key={actualPage}'),'allocation list scroll position resets on page change');
+check(inbox.includes('panel.getBoundingClientRect()')&&!inbox.includes('scrollIntoView'),'returning to chosen inbox enquiry scrolls only left list, not entire page');
+check(inbox.includes('h-fit min-w-0 self-start')&&allocation.includes('h-fit min-w-0 self-start'),'right detail cards follow content height instead of stretching');
+check(allocation.includes('e.id === sel')&&allocation.includes('events[0]'),'selected allocation always comes from current page');
+check(inbox.includes('Confirmed events (')&&allocation.includes('api.moveAllocation'),'confirmed-event filter and GM staffing flow preserved');
+console.log(`ALL ${n} M26 MASTER-DETAIL REGRESSION CHECKS PASSED (NOT LIVE BROWSER TESTS)`);

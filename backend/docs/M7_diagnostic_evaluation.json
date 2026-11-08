@@ -1,0 +1,242 @@
+{
+  "dataset": "data/agent-holdout-v1.jsonl",
+  "trainingExamples": 210,
+  "trainingOverlap": 0,
+  "summary": {
+    "count": 50,
+    "accuracy": 0.9,
+    "macroF1": 0.9024836601307189,
+    "routedCoverage": 0.7,
+    "routedPrecision": 1,
+    "wrongAutoRouted": 0,
+    "unknownAutoRouted": 0,
+    "complaintMisses": 0,
+    "reviewRate": 0.3,
+    "metrics": [
+      {
+        "label": "ROOM_BOOKING",
+        "support": 10,
+        "tp": 10,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      {
+        "label": "WEDDING",
+        "support": 10,
+        "tp": 7,
+        "fp": 0,
+        "fn": 3,
+        "precision": 1,
+        "recall": 0.7,
+        "f1": 0.8235294117647058
+      },
+      {
+        "label": "CORPORATE_OFFSITE",
+        "support": 10,
+        "tp": 8,
+        "fp": 0,
+        "fn": 2,
+        "precision": 1,
+        "recall": 0.8,
+        "f1": 0.888888888888889
+      },
+      {
+        "label": "COMPLAINT",
+        "support": 10,
+        "tp": 10,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      {
+        "label": "UNKNOWN",
+        "support": 10,
+        "tp": 10,
+        "fp": 5,
+        "fn": 0,
+        "precision": 0.6666666666666666,
+        "recall": 1,
+        "f1": 0.8
+      }
+    ],
+    "confusion": {
+      "ROOM_BOOKING": {
+        "ROOM_BOOKING": 10,
+        "WEDDING": 0,
+        "CORPORATE_OFFSITE": 0,
+        "COMPLAINT": 0,
+        "UNKNOWN": 0
+      },
+      "WEDDING": {
+        "ROOM_BOOKING": 0,
+        "WEDDING": 7,
+        "CORPORATE_OFFSITE": 0,
+        "COMPLAINT": 0,
+        "UNKNOWN": 3
+      },
+      "CORPORATE_OFFSITE": {
+        "ROOM_BOOKING": 0,
+        "WEDDING": 0,
+        "CORPORATE_OFFSITE": 8,
+        "COMPLAINT": 0,
+        "UNKNOWN": 2
+      },
+      "COMPLAINT": {
+        "ROOM_BOOKING": 0,
+        "WEDDING": 0,
+        "CORPORATE_OFFSITE": 0,
+        "COMPLAINT": 10,
+        "UNKNOWN": 0
+      },
+      "UNKNOWN": {
+        "ROOM_BOOKING": 0,
+        "WEDDING": 0,
+        "CORPORATE_OFFSITE": 0,
+        "COMPLAINT": 0,
+        "UNKNOWN": 10
+      }
+    }
+  },
+  "extraction": {
+    "passed": 14,
+    "total": 14,
+    "checks": [
+      {
+        "text": "Can I reserve a villa from 2027-06-21 to 2027-06-24 with three guests?",
+        "field": "exactCheckIn",
+        "expected": "2027-06-21",
+        "actual": "2027-06-21",
+        "pass": true
+      },
+      {
+        "text": "Can I reserve a villa from 2027-06-21 to 2027-06-24 with three guests?",
+        "field": "exactCheckOut",
+        "expected": "2027-06-24",
+        "actual": "2027-06-24",
+        "pass": true
+      },
+      {
+        "text": "Can I reserve a villa from 2027-06-21 to 2027-06-24 with three guests?",
+        "field": "guestCount",
+        "expected": null,
+        "actual": null,
+        "pass": true
+      },
+      {
+        "text": "Could your property manage a haldi ceremony and a sangeet for 180 people?",
+        "field": "guestCount",
+        "expected": 180,
+        "actual": 180,
+        "pass": true
+      },
+      {
+        "text": "Could your property manage a haldi ceremony and a sangeet for 180 people?",
+        "field": "exactCheckIn",
+        "expected": null,
+        "actual": null,
+        "pass": true
+      },
+      {
+        "text": "Need a wedding lawn plus accommodation for 40 relatives.",
+        "field": "requestedVenue",
+        "expected": "LAWN",
+        "actual": "LAWN",
+        "pass": true
+      },
+      {
+        "text": "Need a wedding lawn plus accommodation for 40 relatives.",
+        "field": "exactCheckIn",
+        "expected": null,
+        "actual": null,
+        "pass": true
+      },
+      {
+        "text": "Can 2027-10-07 to 2027-10-09 accommodate our wedding guests and lawn?",
+        "field": "exactCheckIn",
+        "expected": "2027-10-07",
+        "actual": "2027-10-07",
+        "pass": true
+      },
+      {
+        "text": "Can 2027-10-07 to 2027-10-09 accommodate our wedding guests and lawn?",
+        "field": "exactCheckOut",
+        "expected": "2027-10-09",
+        "actual": "2027-10-09",
+        "pass": true
+      },
+      {
+        "text": "Can 2027-10-07 to 2027-10-09 accommodate our wedding guests and lawn?",
+        "field": "requestedVenue",
+        "expected": "LAWN",
+        "actual": "LAWN",
+        "pass": true
+      },
+      {
+        "text": "Can you host 60 teammates for a two-day company offsite?",
+        "field": "exactCheckIn",
+        "expected": null,
+        "actual": null,
+        "pass": true
+      },
+      {
+        "text": "Our wedding dinner was served two hours late, unacceptable service.",
+        "field": "exactCheckIn",
+        "expected": null,
+        "actual": null,
+        "pass": true
+      },
+      {
+        "text": "Hi, anyone there?",
+        "field": "exactCheckIn",
+        "expected": null,
+        "actual": null,
+        "pass": true
+      },
+      {
+        "text": "Hi, anyone there?",
+        "field": "guestCount",
+        "expected": null,
+        "actual": null,
+        "pass": true
+      }
+    ]
+  },
+  "mistakes": [
+    {
+      "expected": "WEDDING",
+      "predicted": "UNKNOWN",
+      "confidence": 0.6122,
+      "text": "Please send details of a three-day destination marriage package."
+    },
+    {
+      "expected": "WEDDING",
+      "predicted": "UNKNOWN",
+      "confidence": 0.3576,
+      "text": "Do you arrange mehendi events with an evening buffet for families?"
+    },
+    {
+      "expected": "WEDDING",
+      "predicted": "UNKNOWN",
+      "confidence": 0.5594,
+      "text": "We have 300 invitees for our daughters nuptials, can you host it?"
+    },
+    {
+      "expected": "CORPORATE_OFFSITE",
+      "predicted": "UNKNOWN",
+      "confidence": 0.6555,
+      "text": "Can our department organize a hackathon weekend at your estate?"
+    },
+    {
+      "expected": "CORPORATE_OFFSITE",
+      "predicted": "UNKNOWN",
+      "confidence": 0.5832,
+      "text": "Share packages for a management meeting plus overnight rooms."
+    }
+  ],
+  "disclaimer": "Synthetic authored holdout, NOT measured production accuracy. No automatic training or routing policy changes."
+}

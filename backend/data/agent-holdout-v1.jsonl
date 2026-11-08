@@ -1,0 +1,50 @@
+{"text": "For the long weekend, do you have one garden-view cottage for two adults?", "label": "ROOM_BOOKING"}
+{"text": "Planning a two-night family stay near the coffee trails. Which villas can we book?", "label": "ROOM_BOOKING"}
+{"text": "Our travel party needs three king rooms and early check-in.", "label": "ROOM_BOOKING"}
+{"text": "Can you share nightly tariffs for a private pool villa?", "label": "ROOM_BOOKING"}
+{"text": "We need a twin-bed unit for my parents on 12 to 14 December.", "label": "ROOM_BOOKING"}
+{"text": "What is the minimum stay for a premium suite?", "label": "ROOM_BOOKING"}
+{"text": "I want to book two plantation rooms for our anniversary trip.", "label": "ROOM_BOOKING"}
+{"text": "Can I reserve a villa from 2027-06-21 to 2027-06-24 with three guests?", "label": "ROOM_BOOKING", "expectedExtraction": {"exactCheckIn": "2027-06-21", "exactCheckOut": "2027-06-24", "guestCount": null}}
+{"text": "How much does an estate-facing room cost on Saturdays?", "label": "ROOM_BOOKING"}
+{"text": "Could you hold an accessible guestroom for the holiday weekend?", "label": "ROOM_BOOKING"}
+{"text": "We are hosting our marriage reception; is your outdoor venue available?", "label": "WEDDING"}
+{"text": "Could your property manage a haldi ceremony and a sangeet for 180 people?", "label": "WEDDING", "expectedExtraction": {"guestCount": 180, "exactCheckIn": null}}
+{"text": "Need a wedding lawn plus accommodation for 40 relatives.", "label": "WEDDING", "expectedExtraction": {"requestedVenue": "LAWN", "exactCheckIn": null}}
+{"text": "Please send details of a three-day destination marriage package.", "label": "WEDDING"}
+{"text": "Our wedding celebration needs two nights of guest rooms and a ballroom.", "label": "WEDDING"}
+{"text": "Do you arrange mehendi events with an evening buffet for families?", "label": "WEDDING"}
+{"text": "We have 300 invitees for our daughters nuptials, can you host it?", "label": "WEDDING"}
+{"text": "Looking for a mandap space at a coffee plantation wedding.", "label": "WEDDING"}
+{"text": "We want an intimate 80-person ceremony and an open-air reception.", "label": "WEDDING"}
+{"text": "Can 2027-10-07 to 2027-10-09 accommodate our wedding guests and lawn?", "label": "WEDDING", "expectedExtraction": {"exactCheckIn": "2027-10-07", "exactCheckOut": "2027-10-09", "requestedVenue": "LAWN"}}
+{"text": "A leadership strategy retreat for 24 executives with workshop facilities.", "label": "CORPORATE_OFFSITE"}
+{"text": "Need conference space with projector for our quarterly all-hands.", "label": "CORPORATE_OFFSITE"}
+{"text": "Can you host 60 teammates for a two-day company offsite?", "label": "CORPORATE_OFFSITE", "expectedExtraction": {"exactCheckIn": null}}
+{"text": "We want a training venue and team-building exercises away from Bengaluru.", "label": "CORPORATE_OFFSITE"}
+{"text": "Planning an annual sales kickoff with breakout rooms and meals.", "label": "CORPORATE_OFFSITE"}
+{"text": "Can our department organize a hackathon weekend at your estate?", "label": "CORPORATE_OFFSITE"}
+{"text": "Share packages for a management meeting plus overnight rooms.", "label": "CORPORATE_OFFSITE"}
+{"text": "An HR retreat needs a meeting room, chairs, microphones and 35 people.", "label": "CORPORATE_OFFSITE"}
+{"text": "We are a startup planning a team workation and boardroom session.", "label": "CORPORATE_OFFSITE"}
+{"text": "Need a corporate residential program for 50 employees with a hall.", "label": "CORPORATE_OFFSITE"}
+{"text": "We were billed twice for our stay and need this resolved immediately.", "label": "COMPLAINT"}
+{"text": "The room had an unpleasant smell, and the front desk ignored us.", "label": "COMPLAINT"}
+{"text": "My child slipped on a wet corridor; please escalate this safety incident.", "label": "COMPLAINT"}
+{"text": "Please investigate a theft from our locked cottage.", "label": "COMPLAINT"}
+{"text": "Our wedding dinner was served two hours late, unacceptable service.", "label": "COMPLAINT", "expectedExtraction": {"exactCheckIn": null}}
+{"text": "We were charged extra against the agreed booking total.", "label": "COMPLAINT"}
+{"text": "Your staff member behaved rudely during check-in.", "label": "COMPLAINT"}
+{"text": "The suite AC was broken and nobody helped overnight.", "label": "COMPLAINT"}
+{"text": "Our group food was unhygienic and several guests were upset.", "label": "COMPLAINT"}
+{"text": "I want to raise an official complaint about my recent visit.", "label": "COMPLAINT"}
+{"text": "Hi, anyone there?", "label": "UNKNOWN", "expectedExtraction": {"exactCheckIn": null, "guestCount": null}}
+{"text": "Please call me when you get time.", "label": "UNKNOWN"}
+{"text": "Can I get your general brochure?", "label": "UNKNOWN"}
+{"text": "Who is the person handling marketing partnerships?", "label": "UNKNOWN"}
+{"text": "Do you have charging points for electric vehicles?", "label": "UNKNOWN"}
+{"text": "Is the plantation trail accessible to day visitors?", "label": "UNKNOWN"}
+{"text": "What time does the reception desk close?", "label": "UNKNOWN"}
+{"text": "Where should I send my vendor invoice?", "label": "UNKNOWN"}
+{"text": "Please tell me about the weather in the region.", "label": "UNKNOWN"}
+{"text": "Can someone explain your property rules?", "label": "UNKNOWN"}

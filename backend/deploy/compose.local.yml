@@ -1,0 +1,17 @@
+# Optional macOS Docker Desktop demo. Uses the EXISTING local PostgreSQL server.
+# First create .env in the project root; Postgres must accept Docker-to-host connections.
+# For hosted deployments, use a managed PostgreSQL database and external HTTPS termination.
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:4000:4000"
+    env_file:
+      - ../.env
+    environment:
+      NODE_ENV: development
+      PORT: "4000"
+      DB_HOST: host.docker.internal
+    restart: unless-stopped

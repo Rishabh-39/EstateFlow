@@ -1,0 +1,50 @@
+{"text": "We are visiting the hill station and need a family villa with breakfast.", "label": "ROOM_BOOKING"}
+{"text": "What are your nightly rates for a king bed cottage?", "label": "ROOM_BOOKING"}
+{"text": "Need three standard bedrooms for our vacation group.", "label": "ROOM_BOOKING"}
+{"text": "Is there a wheelchair accessible room for a weekend stay?", "label": "ROOM_BOOKING"}
+{"text": "How long is the minimum night stay during December holidays?", "label": "ROOM_BOOKING"}
+{"text": "Do you have a poolside villa for two grown ups?", "label": "ROOM_BOOKING"}
+{"text": "Can you accommodate our family trip in a suite with extra beds?", "label": "ROOM_BOOKING"}
+{"text": "Looking to reserve a comfortable guestroom for the upcoming long weekend.", "label": "ROOM_BOOKING"}
+{"text": "How much is one estate view bedroom for Friday and Saturday?", "label": "ROOM_BOOKING"}
+{"text": "Our parents would like a quiet twin bed hotel stay.", "label": "ROOM_BOOKING"}
+{"text": "Please provide marriage ceremony venue and banquet pricing.", "label": "WEDDING"}
+{"text": "We want to organize a family sangeet followed by mehendi celebrations.", "label": "WEDDING"}
+{"text": "Arranging a destination nuptial function for all our invitees.", "label": "WEDDING"}
+{"text": "We need a mandap arrangement and lawn for the wedding day.", "label": "WEDDING"}
+{"text": "The bride and groom want their haldi ritual held outdoors.", "label": "WEDDING"}
+{"text": "Can you plan our daughter wedding reception at the plantation?", "label": "WEDDING"}
+{"text": "Looking for a lavish intimate marriage function with 80 relatives.", "label": "WEDDING"}
+{"text": "We want a reception buffet along with accommodation for wedding guests.", "label": "WEDDING"}
+{"text": "How much for a mehndi, wedding and farewell brunch package?", "label": "WEDDING"}
+{"text": "Our extended family is exploring ceremony venues for a destination wedding.", "label": "WEDDING"}
+{"text": "We are planning an all hands department meet and company hackathon.", "label": "CORPORATE_OFFSITE"}
+{"text": "Need a boardroom meeting venue for executive leadership summit.", "label": "CORPORATE_OFFSITE"}
+{"text": "Can we run our product-team retreat and skills workshops at the estate?", "label": "CORPORATE_OFFSITE"}
+{"text": "Planning a residential management training camp for employees.", "label": "CORPORATE_OFFSITE"}
+{"text": "Looking for projector and breakout halls for the annual sales kickoff.", "label": "CORPORATE_OFFSITE"}
+{"text": "Our HR team needs a corporate team building retreat in the hills.", "label": "CORPORATE_OFFSITE"}
+{"text": "Need a group workation with internet access and meeting space.", "label": "CORPORATE_OFFSITE"}
+{"text": "Company leadership is seeking a quiet offsite setting to plan strategy.", "label": "CORPORATE_OFFSITE"}
+{"text": "Can your hotel host our engineering planning workshop and innovation sprint?", "label": "CORPORATE_OFFSITE"}
+{"text": "Our startup wants a retreat for 55 employees with conference facilities.", "label": "CORPORATE_OFFSITE"}
+{"text": "The resort service was rude to my family and I need the manager.", "label": "COMPLAINT"}
+{"text": "I was overbilled on checkout and want the charges reversed.", "label": "COMPLAINT"}
+{"text": "A member of our staff was injured due to unsafe facilities.", "label": "COMPLAINT"}
+{"text": "We are unhappy about a filthy room and poor cleaning.", "label": "COMPLAINT"}
+{"text": "Somebody stole valuables from our booked cottage.", "label": "COMPLAINT"}
+{"text": "My refund remains pending and nobody is answering.", "label": "COMPLAINT"}
+{"text": "The security situation felt unsafe and worrying.", "label": "COMPLAINT"}
+{"text": "Our event food hygiene was unacceptable to guests.", "label": "COMPLAINT"}
+{"text": "We received a dirty room even though we paid for an upgrade.", "label": "COMPLAINT"}
+{"text": "Please investigate the misbehavior of your employee during check-in.", "label": "COMPLAINT"}
+{"text": "Could you call me on Monday morning?", "label": "UNKNOWN"}
+{"text": "Where can I find the property address and map?", "label": "UNKNOWN"}
+{"text": "Do you have a downloadable brochure with your facilities?", "label": "UNKNOWN"}
+{"text": "What are the reception desk operating hours?", "label": "UNKNOWN"}
+{"text": "Please share the vendor accounts department email.", "label": "UNKNOWN"}
+{"text": "Are the garden paths available for day visitors?", "label": "UNKNOWN"}
+{"text": "Can I charge my electric scooter on site?", "label": "UNKNOWN"}
+{"text": "I would like information about advertising partnerships.", "label": "UNKNOWN"}
+{"text": "Is the road from the railway station open today?", "label": "UNKNOWN"}
+{"text": "Can I speak with the site owner about a partnership?", "label": "UNKNOWN"}

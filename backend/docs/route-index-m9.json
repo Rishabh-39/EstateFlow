@@ -1,0 +1,367 @@
+[
+  {
+    "method": "get",
+    "path": "/",
+    "source": "src/app.module.ts"
+  },
+  {
+    "method": "post",
+    "path": "/auth/login",
+    "source": "src/auth/auth.ts"
+  },
+  {
+    "method": "get",
+    "path": "/auth/me",
+    "source": "src/auth/auth.ts"
+  },
+  {
+    "method": "post",
+    "path": "/auth/register",
+    "source": "src/auth/auth.ts"
+  },
+  {
+    "method": "get",
+    "path": "/availability",
+    "source": "src/rooms/rooms.ts"
+  },
+  {
+    "method": "post",
+    "path": "/booking-holds",
+    "source": "src/bookings/bookings.ts"
+  },
+  {
+    "method": "get",
+    "path": "/booking-holds/{id}",
+    "source": "src/bookings/bookings.ts"
+  },
+  {
+    "method": "get",
+    "path": "/bookings",
+    "source": "src/bookings/bookings.ts"
+  },
+  {
+    "method": "get",
+    "path": "/bookings/{id}",
+    "source": "src/bookings/bookings.ts"
+  },
+  {
+    "method": "post",
+    "path": "/bookings/{id}/cancel",
+    "source": "src/bookings/bookings.ts"
+  },
+  {
+    "method": "get",
+    "path": "/bookings/reference/{reference}",
+    "source": "src/bookings/bookings.ts"
+  },
+  {
+    "method": "post",
+    "path": "/enquiries",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "post",
+    "path": "/enquiries/chat/advisory",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "get",
+    "path": "/gm/event-approvals",
+    "source": "src/events/approval.ts"
+  },
+  {
+    "method": "post",
+    "path": "/gm/event-approvals/{id}/decision",
+    "source": "src/events/approval.ts"
+  },
+  {
+    "method": "get",
+    "path": "/health",
+    "source": "src/app.module.ts"
+  },
+  {
+    "method": "get",
+    "path": "/health/ready",
+    "source": "src/app.module.ts"
+  },
+  {
+    "method": "get",
+    "path": "/openapi.json",
+    "source": "src/app.module.ts"
+  },
+  {
+    "method": "post",
+    "path": "/payments/mock/confirm",
+    "source": "src/bookings/bookings.ts"
+  },
+  {
+    "method": "get",
+    "path": "/promotions/eligible",
+    "source": "src/rooms/rooms.ts"
+  },
+  {
+    "method": "post",
+    "path": "/quotes",
+    "source": "src/rooms/rooms.ts"
+  },
+  {
+    "method": "get",
+    "path": "/room-types",
+    "source": "src/rooms/rooms.ts"
+  },
+  {
+    "method": "get",
+    "path": "/room-types/{id}",
+    "source": "src/rooms/rooms.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/allocations",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/allocations/{id}",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "put",
+    "path": "/staff/allocations/{id}",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/allocations/{id}/transition",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/bookings/export",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/bookings/preview",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "patch",
+    "path": "/staff/drafts/{id}",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/drafts/{id}/send-simulated",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/enquiries",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/enquiries/{id}",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/enquiries/{id}/ai-process",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/enquiries/{id}/client-followups",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/enquiries/{id}/client-followups",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/enquiries/{id}/drafts",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/enquiries/{id}/escalate-complaint",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/enquiries/{id}/escalate-unresolved",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/enquiries/{id}/event-proposal",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "patch",
+    "path": "/staff/enquiries/{id}/extraction",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "patch",
+    "path": "/staff/enquiries/{id}/gm-return",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/enquiries/{id}/gm-review",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/enquiries/{id}/gm-review/{decisionId}/acknowledge",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "patch",
+    "path": "/staff/enquiries/{id}/routing",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/enquiries/mock-inbound",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/enquiries/paged",
+    "source": "src/enquiries/enquiries.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/event-approvals/{id}",
+    "source": "src/events/approval.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/event-approvals/{id}/confirm-client",
+    "source": "src/events/approval.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/event-approvals/{id}/request",
+    "source": "src/events/approval.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/events",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/events",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/events/{id}",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/events/{id}/alternatives",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/events/{id}/alternatives/select",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/events/{id}/bundle",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/events/{id}/evaluations",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/events/{id}/requirements",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "put",
+    "path": "/staff/events/{id}/requirements",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/events/{id}/reserve",
+    "source": "src/events/events.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/gm-escalations",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/gm-escalations/recent",
+    "source": "src/staff/plans.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/inventory",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "put",
+    "path": "/staff/inventory/{roomTypeId}/days/{date}",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/overview",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/promo-codes",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "post",
+    "path": "/staff/promo-codes",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "patch",
+    "path": "/staff/promo-codes/{code}",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/rates",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "put",
+    "path": "/staff/rates/{roomTypeId}/days/{date}",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/resources",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "patch",
+    "path": "/staff/resources/{id}/capacity",
+    "source": "src/staff/staff.ts"
+  },
+  {
+    "method": "get",
+    "path": "/staff/resources/calendar",
+    "source": "src/staff/staff.ts"
+  }
+]

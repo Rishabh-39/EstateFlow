@@ -1,0 +1,16 @@
+# Paste into Lovable only after its screens are generated
+
+Continue modifying the **existing** EstateFlow React/TypeScript/Tailwind UI. Do not create new pages if the same ones already exist and do not restyle or discard the user's low-, mid-, and high-fidelity work. The user has an existing **NestJS v0.8.0 + local PostgreSQL `rishabh` + custom local ML agent** backend. Do not create or replace it with Supabase, Firebase, or a new mock backend.
+
+1. Copy `integrations/estateflow-api.ts` from the backend to `src/lib/estateflow-api.ts`. Use `VITE_ESTATEFLOW_API_BASE_URL` as the public API URL. Do not place `DB_PASSWORD`, JWT signing secrets or PostgreSQL URLs into the React project. Browser code only uses server-issued Bearer access tokens.
+2. Wire the guest screens: `/room-types`, `/room-types/:id`, date-range availability, quotes with INR paise, registration/login, booking holds with remaining-seconds status, **mock** payment and confirmation. The checkout date range is a date-only calendar interval; checkout exclusive. Use a stable distinct idempotency key for every hold/payment attempt and for its network retries.
+3. Wire event enquiry submission. Currently `POST /enquiries` takes only `contactName`, optional `contactEmail`, and `message`; serialize all structured event fields visibly into `message` until the backend supports dedicated structured columns. Do not silently discard form selections. It should show *Enquiry received — awaiting staff review*, not *venue booked*.
+4. Wire staff login/roles, inbox, AI result display and human corrections. Complaint and unknown classifications require review. Drafts can be edited; the 'Send simulated' action must say **Simulation** in the UI.
+5. Wire staff event proposal → requirement graph → feasibility → conflict explanation → verified alternatives → explicit staff approval → committed bundle. **Do not** call the reserve endpoint during AI processing, evaluation, form submission, or alternative selection.
+6. Wire daily rate/allotment editing, resource-calendar statuses and booking CSV export. Show server-side capacity conflicts and read-only states accurately.
+7. Implement UI loading, empty, unauthorized, stale-hold, validation, rate-limit and inventory-changed states. Do not invent unsupported backend fields, asset URLs, live WhatsApp integration, OTA synchronization or real payment settlement.
+8. Preserve user-provided photographic editorial design references and the EstateFlow design system (forest green #173B32, ivory #F7F5EE, coffee brown #A87B53). Prioritize accessible responsive mobile booking and a fast staff operations workbench.
+
+IMPORTANT CONNECTION WARNING: A hosted Lovable browser preview cannot reach `http://localhost:4000` on a different device, including the user's Mac. Either work from a local Vite export on the Mac, or connect the hosted frontend to an explicitly configured secure HTTPS backend. Update the backend's `CORS_ORIGIN` to exactly match the frontend origin. Never use a public tunnel that exposes an unprotected development database or demonstration admin credentials.
+
+Show a concise route/component-to-API mapping and a list of remaining backend integration dependencies after wiring. Test the actual requests in the browser network panel, and do not mark tasks complete on mocked responses.

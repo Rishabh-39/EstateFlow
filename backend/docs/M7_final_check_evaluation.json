@@ -1,0 +1,131 @@
+{
+  "dataset": "data/agent-final-check-v1.jsonl",
+  "trainingExamples": 210,
+  "trainingOverlap": 0,
+  "summary": {
+    "count": 30,
+    "accuracy": 0.9,
+    "macroF1": 0.9018181818181817,
+    "routedCoverage": 0.7,
+    "routedPrecision": 1,
+    "wrongAutoRouted": 0,
+    "unknownAutoRouted": 0,
+    "complaintMisses": 0,
+    "reviewRate": 0.3,
+    "metrics": [
+      {
+        "label": "ROOM_BOOKING",
+        "support": 6,
+        "tp": 4,
+        "fp": 0,
+        "fn": 2,
+        "precision": 1,
+        "recall": 0.6666666666666666,
+        "f1": 0.8
+      },
+      {
+        "label": "WEDDING",
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      {
+        "label": "CORPORATE_OFFSITE",
+        "support": 6,
+        "tp": 5,
+        "fp": 0,
+        "fn": 1,
+        "precision": 1,
+        "recall": 0.8333333333333334,
+        "f1": 0.9090909090909091
+      },
+      {
+        "label": "COMPLAINT",
+        "support": 6,
+        "tp": 6,
+        "fp": 0,
+        "fn": 0,
+        "precision": 1,
+        "recall": 1,
+        "f1": 1
+      },
+      {
+        "label": "UNKNOWN",
+        "support": 6,
+        "tp": 6,
+        "fp": 3,
+        "fn": 0,
+        "precision": 0.6666666666666666,
+        "recall": 1,
+        "f1": 0.8
+      }
+    ],
+    "confusion": {
+      "ROOM_BOOKING": {
+        "ROOM_BOOKING": 4,
+        "WEDDING": 0,
+        "CORPORATE_OFFSITE": 0,
+        "COMPLAINT": 0,
+        "UNKNOWN": 2
+      },
+      "WEDDING": {
+        "ROOM_BOOKING": 0,
+        "WEDDING": 6,
+        "CORPORATE_OFFSITE": 0,
+        "COMPLAINT": 0,
+        "UNKNOWN": 0
+      },
+      "CORPORATE_OFFSITE": {
+        "ROOM_BOOKING": 0,
+        "WEDDING": 0,
+        "CORPORATE_OFFSITE": 5,
+        "COMPLAINT": 0,
+        "UNKNOWN": 1
+      },
+      "COMPLAINT": {
+        "ROOM_BOOKING": 0,
+        "WEDDING": 0,
+        "CORPORATE_OFFSITE": 0,
+        "COMPLAINT": 6,
+        "UNKNOWN": 0
+      },
+      "UNKNOWN": {
+        "ROOM_BOOKING": 0,
+        "WEDDING": 0,
+        "CORPORATE_OFFSITE": 0,
+        "COMPLAINT": 0,
+        "UNKNOWN": 6
+      }
+    }
+  },
+  "extraction": {
+    "passed": 0,
+    "total": 0,
+    "checks": []
+  },
+  "mistakes": [
+    {
+      "expected": "ROOM_BOOKING",
+      "predicted": "UNKNOWN",
+      "confidence": 0.6493,
+      "text": "Please tell me the weekday cost of your most spacious villa."
+    },
+    {
+      "expected": "ROOM_BOOKING",
+      "predicted": "UNKNOWN",
+      "confidence": 0.4033,
+      "text": "Can we get a four-person accommodation package without meals?"
+    },
+    {
+      "expected": "CORPORATE_OFFSITE",
+      "predicted": "UNKNOWN",
+      "confidence": 0.487,
+      "text": "We would like to host our internal design sprint at the property."
+    }
+  ],
+  "disclaimer": "Synthetic authored holdout, NOT measured production accuracy. No automatic training or routing policy changes."
+}
