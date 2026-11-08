@@ -1,6 +1,4 @@
-> **v0.13.3:** Optional local Ollama + Qwen structured extraction and conversational draft wording. See [OLLAMA_LOCAL_INTEGRATION.md](OLLAMA_LOCAL_INTEGRATION.md) for setup and safeguards. No change to original Lovable visual template.
-
-# EstateFlow — Integrated Lovable Frontend + NestJS Backend
+# EstateFlow
 
 **Status: source-integrated release v0.13.3 (local development; Ollama semantic extraction + earlier concierge/GM fixes).** The project combines the original Lovable UI with the NestJS/PostgreSQL backend and the staff/GM review workflow. See `AI_AND_STAFF_FIXES.md` for the five fixes in v0.13.2; migrations 005 and 006 must be applied.
 
