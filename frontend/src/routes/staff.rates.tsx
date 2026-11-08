@@ -23,10 +23,14 @@ function Rates() {
   useEffect(()=>{if(!roomId&&rooms.data?.[0])setRoomId(rooms.data[0].id);},[rooms.data,roomId]);
   const rates = useQuery({ queryKey: ["rates", from], queryFn: () => api.listRates(from, DAYS) });
   const [edits, setEdits] = useState<Record<string, DayRate>>({});
-  const save = useMutation({ mutationFn: () => api.saveRates(Object.values(edits)), onSuccess: () => { setEdits({}); toast.success("Rates saved in PostgreSQL"); qc.invalidateQueries({ queryKey: ["rates"] }); qc.invalidateQueries({ queryKey: ["avail"] }); } });
+  const save = useMutation({
+    mutationFn: () => api.saveRates(Object.values(edits)),
+    onSuccess: () => { setEdits({}); toast.success("Rates and inventory saved in PostgreSQL"); qc.invalidateQueries({ queryKey: ["rates"] }); qc.invalidateQueries({ queryKey: ["avail"] }); },
+    onError: (error: Error) => toast.error(error.message || "Could not save rates"),
+  });
 
   const rows = (rates.data ?? []).filter((r) => r.roomId === roomId).map((r) => edits[`${r.roomId}:${r.date}`] ?? r);
-  const edit = (r: DayRate, patch: Partial<DayRate>) => setEdits({ ...edits, [`${r.roomId}:${r.date}`]: { ...r, ...patch } });
+  const edit = (r: DayRate, patch: Partial<DayRate>) => setEdits(previous => ({ ...previous, [`${r.roomId}:${r.date}`]: { ...r, ...previous[`${r.roomId}:${r.date}`], ...patch } }));
   const dirty = Object.keys(edits).length;
 
   return (
@@ -44,16 +48,19 @@ function Rates() {
 
       {rates.isPending || rooms.isPending ? <Skeleton className="h-72 rounded-2xl" /> : rates.isError ? <ErrorState onRetry={() => rates.refetch()} /> : (
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-7">
+          {rows.length === 0 && <p className="col-span-full text-sm text-muted-foreground">No inventory dates are configured in this range for the selected room type.</p>}
           {rows.map((r) => (
             <div key={r.date} className={cn("panel space-y-2 p-3", r.blackout && "bg-muted opacity-70", edits[`${r.roomId}:${r.date}`] && "ring-2 ring-coffee/50")}>
               <p className="text-xs font-medium">{fmtDate(r.date, { weekday: "short", day: "numeric", month: "short" })}</p>
-              <label className="block text-[0.7rem] text-muted-foreground">Rate ₹<Input type="number" value={r.rate} onChange={(e) => edit(r, { rate: Number(e.target.value) })} className="mt-0.5 h-8 rounded-md text-sm" /></label>
+              <label className="block text-[0.7rem] text-muted-foreground">Rate ₹<Input type="number" min={0.01} step="0.01" placeholder="Not configured" value={r.rate ?? ""} onChange={(e) => edit(r, { rate: e.target.value === "" ? null : Number(e.target.value) })} className="mt-0.5 h-8 rounded-md text-sm" /></label>
+              <label className="block text-[0.7rem] text-muted-foreground">GST %<Input type="number" min={0} max={100} step="0.01" placeholder="Not configured" value={r.gstBasisPoints === undefined ? "" : r.gstBasisPoints / 100} onChange={(e) => edit(r, { gstBasisPoints: e.target.value === "" ? undefined : Math.round(Number(e.target.value) * 100) })} className="mt-0.5 h-8 rounded-md text-sm" /></label>
               <label className="block text-[0.7rem] text-muted-foreground">Allotment<Input type="number" min={0} value={r.allotment} onChange={(e) => edit(r, { allotment: Number(e.target.value) })} className="mt-0.5 h-8 rounded-md text-sm" /></label>
               <label className="flex items-center justify-between text-[0.7rem] text-muted-foreground">Blackout<Switch checked={r.blackout} onCheckedChange={(v) => edit(r, { blackout: v })} /></label>
             </div>
           ))}
         </div>
       )}
+      <p className="text-xs text-muted-foreground">Dates without a price are shown as “Not configured.” Keep website allotment at 0 until a verified rate and applicable GST are entered. A blank price never means a free stay.</p>
       <div className="sticky bottom-4 flex flex-wrap items-center justify-end gap-3">
         {dirty > 0 && <span className="text-sm text-muted-foreground">{dirty} unsaved change{dirty > 1 && "s"}</span>}
         <Button variant="quiet" disabled={!dirty} onClick={() => setEdits({})}>Cancel</Button>

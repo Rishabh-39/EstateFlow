@@ -63,7 +63,8 @@ export interface EventEnquiryInput {
 export interface DayRate {
   date: string;
   roomId: string;
-  rate: number;
+  /** null means this date has no verified price in PostgreSQL. */
+  rate: number | null;
   allotment: number;
   blackout: boolean;
   gstBasisPoints?: number;

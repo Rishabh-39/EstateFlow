@@ -134,8 +134,33 @@ export const liveApi:EstateApi = {
   await requestGmEventApproval(event.id);
   return {status:'pending',message:'Feasible resource proposal sent to the GM. No resources are reserved yet.'};
  }catch(e){if(e instanceof ApiError&&e.status===409)return {status:'conflict',message:e.message};throw e;}},
- async listRates(from,days){const end=isoNext(from,days-1);const [rates,stock]=await Promise.all([http<{room_type_id:string;date:string;rate_paise:number;gst_basis_points:number}[]>(`/staff/rates${params({start:from,end})}`,{auth:true}),http<{room_type_id:string;date:string;website_allotment:number;blacked_out:boolean}[]>(`/staff/inventory${params({start:from,end})}`,{auth:true})]);const byKey=new Map(stock.map(s=>[`${s.room_type_id}:${s.date}`,s]));return rates.map(r=>{const i=byKey.get(`${r.room_type_id}:${r.date}`);return {date:r.date,roomId:r.room_type_id,rate:amount(r.rate_paise),allotment:i?.website_allotment??0,blackout:i?.blacked_out??false,gstBasisPoints:r.gst_basis_points};});},
- async saveRates(rates){for(const r of rates){if(!Number.isInteger(Math.round(r.rate*100))||r.rate<0)throw new ApiError(400,'Room rates must use whole paise.');await http(`/staff/rates/${r.roomId}/days/${r.date}`,{...json({ratePaise:Math.round(r.rate*100),gstBasisPoints:r.gstBasisPoints??1800},'PUT'),auth:true});await http(`/staff/inventory/${r.roomId}/days/${r.date}`,{...json({websiteAllotment:r.allotment,blackedOut:r.blackout},'PUT'),auth:true});}},
+ // Inventory dates are the calendar's source of truth; an absent rate is NOT zero rupees.
+ async listRates(from,days){
+  const end=isoNext(from,days-1);
+  const [rates,stock]=await Promise.all([
+   http<{room_type_id:string;date:string;rate_paise:number;gst_basis_points:number}[]>(`/staff/rates${params({start:from,end})}`,{auth:true}),
+   http<{room_type_id:string;date:string;website_allotment:number;blacked_out:boolean}[]>(`/staff/inventory${params({start:from,end})}`,{auth:true})
+  ]);
+  const byKey=new Map(rates.map(r=>[`${r.room_type_id}:${r.date}`,r]));
+  return stock.map(i=>{
+   const r=byKey.get(`${i.room_type_id}:${i.date}`);
+   return {date:i.date,roomId:i.room_type_id,rate:r?amount(r.rate_paise):null,allotment:i.website_allotment,blackout:i.blacked_out,gstBasisPoints:r?.gst_basis_points};
+  });
+ },
+ async saveRates(rates){
+  for(const r of rates){
+   if(!Number.isInteger(r.allotment)||r.allotment<0)throw new ApiError(400,'Allotment must be a nonnegative whole number.');
+   if(r.rate===null){
+    if(r.allotment>0)throw new ApiError(400,'Set a verified nightly rate before enabling website allotment.');
+   }else{
+    const paise=Math.round(r.rate*100);
+    if(!Number.isFinite(r.rate)||r.rate<=0||!Number.isSafeInteger(paise)||Math.abs(r.rate*100-paise)>1e-6)throw new ApiError(400,'Enter a positive price with no more than two decimal places.');
+    if(!Number.isInteger(r.gstBasisPoints)||Number(r.gstBasisPoints)<0||Number(r.gstBasisPoints)>10000)throw new ApiError(400,'Enter the verified GST percentage for this date.');
+    await http(`/staff/rates/${r.roomId}/days/${r.date}`,{...json({ratePaise:paise,gstBasisPoints:r.gstBasisPoints},'PUT'),auth:true});
+   }
+   await http(`/staff/inventory/${r.roomId}/days/${r.date}`,{...json({websiteAllotment:r.allotment,blackedOut:r.blackout},'PUT'),auth:true});
+  }
+ },
  async listPromos(){const rows=await http<{code:string;discount_percent:number;active:boolean;room_type_id:string|null}[]>('/staff/promo-codes',{auth:true});return rows.map(p=>({code:p.code,discount:p.discount_percent,active:p.active,roomTypeId:p.room_type_id}));},
  async savePromos(promos){const existing=await liveApi.listPromos();for(const p of promos){const old=existing.find(x=>x.code===p.code);if(old){if(old.active!==p.active||old.discount!==p.discount||old.roomTypeId!==p.roomTypeId)await http(`/staff/promo-codes/${p.code}`,{...json({active:p.active,discountPercent:p.discount,roomTypeId:p.roomTypeId??null},'PATCH'),auth:true});}else{const today=new Date().toISOString().slice(0,10);await http('/staff/promo-codes',{...json({code:p.code,discountPercent:p.discount,validFrom:today,validTo:isoNext(today,365),maxUses:100,roomTypeId:p.roomTypeId??null}),auth:true});if(!p.active)await http(`/staff/promo-codes/${p.code}`,{...json({active:false},'PATCH'),auth:true});}}},
  async getAllocation(enquiryId){

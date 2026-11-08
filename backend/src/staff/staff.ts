@@ -23,9 +23,29 @@ export class StaffService {
   return {date,counts:q.rows[0],asOf:new Date().toISOString()};
  }
  async inventory(start:string,end:string){ensureDate(start);ensureDate(end);return (await this.db.query(`SELECT i.room_type_id,t.name,i.stay_date::text AS date,i.website_allotment,i.blacked_out, (SELECT count(*)::int FROM room_nights n JOIN room_units u ON n.room_unit_id=u.id WHERE u.room_type_id=i.room_type_id AND n.stay_date=i.stay_date AND n.origin='DIRECT') AS website_used FROM inventory_days i JOIN room_types t ON i.room_type_id=t.id WHERE i.stay_date BETWEEN $1 AND $2 ORDER BY i.stay_date,t.name LIMIT 500`,[start,end])).rows;}
- async updateInventory(user:any,roomTypeId:string,date:string,b:any){ensureDate(date);const allot=nonnegativeInt(b.websiteAllotment,'websiteAllotment',76);if(typeof b.blackedOut!=='boolean')throw new BadRequestException('blackedOut must be boolean');return this.db.transaction(async client=>{await checkDirectAllotment(client,roomTypeId,date,allot);const q=await client.query(`UPDATE inventory_days SET website_allotment=$3,blacked_out=$4 WHERE room_type_id=$1 AND stay_date=$2 RETURNING room_type_id,stay_date::text AS date,website_allotment,blacked_out`,[roomTypeId,date,allot,b.blackedOut]);if(!q.rows[0])throw new NotFoundException('Inventory date missing');const total=await client.query(`SELECT count(*)::int AS n FROM room_units WHERE room_type_id=$1`,[roomTypeId]);if(allot>total.rows[0].n)throw new ConflictException('Website allotment cannot exceed physical room count');await client.query(`INSERT INTO audit_logs(actor_id,action,meta) VALUES($1,'INVENTORY_UPDATED',$2)`,[user.sub,JSON.stringify({roomTypeId,date,allot,blackedOut:b.blackedOut})]);return q.rows[0];},true);}
+ async updateInventory(user:any,roomTypeId:string,date:string,b:any){ensureDate(date);const allot=nonnegativeInt(b.websiteAllotment,'websiteAllotment',76);if(typeof b.blackedOut!=='boolean')throw new BadRequestException('blackedOut must be boolean');return this.db.transaction(async client=>{
+  if(allot>0){
+   const price=await client.query(`SELECT rate_paise FROM daily_rates WHERE room_type_id=$1 AND stay_date=$2`,[roomTypeId,date]);
+   if(!price.rows[0] || Number(price.rows[0].rate_paise)<=0)throw new ConflictException('Configure a positive nightly rate before enabling website allotment');
+  }
+  await checkDirectAllotment(client,roomTypeId,date,allot);const q=await client.query(`UPDATE inventory_days SET website_allotment=$3,blacked_out=$4 WHERE room_type_id=$1 AND stay_date=$2 RETURNING room_type_id,stay_date::text AS date,website_allotment,blacked_out`,[roomTypeId,date,allot,b.blackedOut]);if(!q.rows[0])throw new NotFoundException('Inventory date missing');const total=await client.query(`SELECT count(*)::int AS n FROM room_units WHERE room_type_id=$1`,[roomTypeId]);if(allot>total.rows[0].n)throw new ConflictException('Website allotment cannot exceed physical room count');await client.query(`INSERT INTO audit_logs(actor_id,action,meta) VALUES($1,'INVENTORY_UPDATED',$2)`,[user.sub,JSON.stringify({roomTypeId,date,allot,blackedOut:b.blackedOut})]);return q.rows[0];},true);}
  async rates(start:string,end:string){ensureDate(start);ensureDate(end);return (await this.db.query(`SELECT r.room_type_id,t.name,r.stay_date::text AS date,r.rate_paise,r.gst_basis_points FROM daily_rates r JOIN room_types t ON r.room_type_id=t.id WHERE r.stay_date BETWEEN $1 AND $2 ORDER BY r.stay_date,t.name LIMIT 500`,[start,end])).rows;}
- async updateRate(user:any,roomTypeId:string,date:string,b:any){ensureDate(date);const rate=nonnegativeInt(b.ratePaise,'ratePaise',100000000);const gst=nonnegativeInt(b.gstBasisPoints,'gstBasisPoints',10000);return this.db.transaction(async client=>{const q=await client.query(`UPDATE daily_rates SET rate_paise=$3,gst_basis_points=$4 WHERE room_type_id=$1 AND stay_date=$2 RETURNING room_type_id,stay_date::text AS date,rate_paise,gst_basis_points`,[roomTypeId,date,rate,gst]);if(!q.rows[0])throw new NotFoundException('Rate date missing');await client.query(`INSERT INTO audit_logs(actor_id,action,meta) VALUES($1,'RATE_UPDATED',$2)`,[user.sub,JSON.stringify({roomTypeId,date,rate,gst})]);return q.rows[0];},true);}
+ async updateRate(user:any,roomTypeId:string,date:string,b:any){
+  ensureDate(date);
+  const rate=nonnegativeInt(b.ratePaise,'ratePaise',100000000);
+  if(rate===0)throw new BadRequestException('A configured nightly rate must be greater than zero');
+  const gst=nonnegativeInt(b.gstBasisPoints,'gstBasisPoints',10000);
+  return this.db.transaction(async client=>{
+   // A rate can only be created for a seeded inventory day; no fabricated dates.
+   const q=await client.query(`INSERT INTO daily_rates (room_type_id,stay_date,rate_paise,gst_basis_points)
+    SELECT room_type_id,stay_date,$3,$4 FROM inventory_days WHERE room_type_id=$1 AND stay_date=$2
+    ON CONFLICT (room_type_id,stay_date) DO UPDATE SET rate_paise=EXCLUDED.rate_paise,gst_basis_points=EXCLUDED.gst_basis_points
+    RETURNING room_type_id,stay_date::text AS date,rate_paise,gst_basis_points`,[roomTypeId,date,rate,gst]);
+   if(!q.rows[0])throw new NotFoundException('Inventory date missing');
+   await client.query(`INSERT INTO audit_logs(actor_id,action,meta) VALUES($1,'RATE_UPDATED',$2)`,[user.sub,JSON.stringify({roomTypeId,date,rate,gst})]);
+   return q.rows[0];
+  },true);
+ }
  async promoList(){return (await this.db.query(`SELECT code,discount_percent,valid_from::text AS valid_from,
    valid_to::text AS valid_to,max_uses,uses,active,room_type_id FROM promo_codes ORDER BY code`)).rows;}
  async promoUpdate(user:any,code:string,b:any){
