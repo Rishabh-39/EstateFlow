@@ -4,6 +4,7 @@
  */
 import { ollamaEnabled, ollamaWording } from './ollama';
 import { extractRequirements } from './classifier';
+import { contextualGuestReply, type GuestConversationFacts, type VenueScheduleObservation } from '../enquiries/concierge-memory';
 export type WordingMode = 'gemini' | 'ollama' | 'local-guided';
 const MODEL = 'gemini-2.5-flash';
 const FACTS = [
@@ -14,7 +15,9 @@ const FACTS = [
   'The system uses mock payments, and does not send automatic email or WhatsApp messages.',
 ].join('\n');
 
-export function localGuestGuidance(message: string): string {
+export function localGuestGuidance(message: string, facts?:GuestConversationFacts, venueStatus?:VenueScheduleObservation): string {
+  const contextual=facts?contextualGuestReply(message,facts,venueStatus):null;
+  if(contextual)return contextual;
   const t = message.toLowerCase();
   const extracted=extractRequirements(message);
   if (/\b(?:complaint|dirty|bad service|refund|unhappy|issue)\b/.test(t))
@@ -86,11 +89,15 @@ export async function staffDraftWording(message:string,context:string):Promise<s
   // Gemini remains available only when explicitly selected; no silent external fallback.
   return process.env.AI_PROVIDER==='gemini'?optionalGemini('staff-draft',message,context):null;
 }
-export async function guestAdvisory(message:string, priorContext=''):Promise<{text:string;mode:WordingMode}> {
+export async function guestAdvisory(message:string, priorContext='',facts?:GuestConversationFacts,venueStatus?:VenueScheduleObservation):Promise<{text:string;mode:WordingMode}> {
+  // For booking, corrections, venue recommendations and availability, the
+  // deterministic answer must use the *saved conversation*, not model memory.
+  const grounded=facts?contextualGuestReply(message,facts,venueStatus):null;
+  if(grounded)return {text:grounded,mode:'local-guided'};
   if(ollamaEnabled()){
     const generated=await ollamaWording('advisory',message,priorContext);
-    return generated?{text:generated,mode:'ollama'}:{text:localGuestGuidance(message),mode:'local-guided'};
+    return generated?{text:generated,mode:'ollama'}:{text:localGuestGuidance(message,facts,venueStatus),mode:'local-guided'};
   }
   const generated=process.env.AI_PROVIDER==='gemini'?await optionalGemini('advisory',message,priorContext):null;
-  return generated?{text:generated,mode:'gemini'}:{text:localGuestGuidance(message),mode:'local-guided'};
+  return generated?{text:generated,mode:'gemini'}:{text:localGuestGuidance(message,facts,venueStatus),mode:'local-guided'};
 }

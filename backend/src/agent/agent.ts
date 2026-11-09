@@ -11,6 +11,7 @@ import { stayDates } from '../shared/validation';
 import { staffDraftWording } from './generative';
 import { semanticExtract, semanticExtractWithDraft, ollamaEnabled, type SemanticResult } from './ollama';
 import { formGroundedDraft, redundantQuestion } from './grounded-draft';
+import { conversationFacts, withConversationFacts } from '../enquiries/concierge-memory';
 
 /** Read-only, explicitly validated agent tool gateway. Never exposes arbitrary SQL or write endpoints. */
 @Injectable()
@@ -78,7 +79,7 @@ export class AgentService {
   }
   return this.db.transaction(async client=>{
    // Lock before consulting manual overrides; never overwrite a staff correction made while the model ran.
-   const current=(await client.query('SELECT manual_category,manual_extracted,contact_name,agent_flags,routing_lane,assigned_user_id,message FROM enquiries WHERE id=$1 FOR UPDATE',[enquiryId])).rows[0];
+   const current=(await client.query('SELECT manual_category,manual_extracted,contact_name,agent_flags,routing_lane,assigned_user_id,message,conversation_id FROM enquiries WHERE id=$1 FOR UPDATE',[enquiryId])).rows[0];
    if(!current)throw new NotFoundException('Enquiry not found');
    const manual=current.manual_category as Intent|'OTHER_EVENT'|null;
    const category=manual||classifiedLabel;
@@ -92,7 +93,12 @@ export class AgentService {
    const route=escalated || (!reviewedSameMessage && category==='OTHER_EVENT' && complaintEvidence)
      ? {lane:'GM_ESCALATION' as const,ownerRole:'GM' as const,requiresReview:true}
      : reviewedSameMessage ? {lane:'ASSIGNED' as const,ownerRole:'STAFF' as const,requiresReview:true} : autoRoute;
-   const effective=mergeCorrection(extracted,(current.manual_extracted||{}) as ExtractionPatch);
+   // Background model results can arrive after another guest message. Rebuild
+   // dialogue facts under the enquiry lock so stale inference never erases a
+   // previously supplied date or guest count in the staff inbox.
+   const dialogue=current.conversation_id?(await client.query(`SELECT body FROM enquiry_messages WHERE enquiry_id=$1 AND role='GUEST' ORDER BY created_at,id`,[enquiryId])).rows.map(r=>String(r.body)):null;
+   const cumulative=dialogue?withConversationFacts(extracted,conversationFacts(dialogue)):extracted;
+   const effective=mergeCorrection(cumulative,(current.manual_extracted||{}) as ExtractionPatch);
    const owner=reviewedSameMessage && current.assigned_user_id && route.ownerRole==='STAFF' ? current.assigned_user_id : (await client.query('SELECT id FROM users WHERE role=$1 ORDER BY email LIMIT 1',[route.ownerRole])).rows[0]?.id||null;
    const flags={...(current.agent_flags||{}),manualCategoryOverride:Boolean(manual),manualExtractionOverride:Boolean(current.manual_extracted),modelUncertain:prediction.needsReview,requiresClarification:effective.missingFields.length>0 || semantic.meta.requiresConfirmation.length>0,semanticSource:semantic.meta.source,semanticFallback:semantic.meta.error||null,approximateFields:semantic.meta.approximateFields,semanticRequiresConfirmation:semantic.meta.requiresConfirmation,complaintEscalated:current.agent_flags?.complaintEscalated===true || (!current.agent_flags?.operationsEscalated && route.lane==='GM_ESCALATION'),toolUnavailable:roomObservation!==null&&typeof roomObservation==='object'&&(roomObservation as any).status==='TOOL_UNAVAILABLE'};
    await client.query(`UPDATE enquiries SET category=$2,routing_lane=$3,assigned_user_id=$4,extracted=$5,agent_confidence=$6,agent_model_version=$7,agent_processed_at=now(),agent_flags=$8 WHERE id=$1`,

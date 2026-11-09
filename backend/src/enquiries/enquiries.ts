@@ -9,6 +9,7 @@ import { Intent, extractRequirements, safeDraft } from '../agent/classifier';
 import { formGroundedDraft } from '../agent/grounded-draft';
 import { validateCorrection, mergeCorrection } from '../agent/policy';
 import { guestAdvisory, localGuestGuidance } from '../agent/generative';
+import { conversationFacts, withConversationFacts, type VenueScheduleObservation } from './concierge-memory';
 
 // Keep counting, selected-enquiry restoration and SQL LIMIT/OFFSET in sync.
 const ENQUIRY_PAGE_SIZE = 10;
@@ -60,8 +61,9 @@ export class EnquiriesService {
     if(record && record.message.length+msg.length+2>5000)throw new BadRequestException('Conversation reached the 5000-character limit; start a new enquiry');
    }
    if(record){
-    const transcript=record.message+'\n'+msg;
-    const preliminary=mergeCorrection(extractRequirements(transcript),record.manual_extracted||{});
+    const previous=(await client.query(`SELECT body FROM enquiry_messages WHERE enquiry_id=$1 AND role='GUEST' ORDER BY created_at,id`,[record.id])).rows.map(r=>String(r.body));
+    const cumulative=conversationFacts([...previous,msg]);
+    const preliminary=mergeCorrection(withConversationFacts(extractRequirements(msg),cumulative),record.manual_extracted||{});
     const changed=await client.query(`UPDATE enquiries SET message=message || chr(10) || $2::text,
      extracted=$3::jsonb,agent_processed_at=NULL,agent_flags=agent_flags || '{"preliminary":true}'::jsonb
      WHERE id=$1 RETURNING id,public_ref,source,status`,[record.id,msg,JSON.stringify(preliminary)]);
@@ -71,7 +73,7 @@ export class EnquiriesService {
     // Make explicit numeric/date facts visible in Staff Inbox immediately. This is a
     // PRELIMINARY deterministic snapshot; Qwen may enrich it, but neither version
     // approves bookings or treats uncertain values as staff-confirmed requirements.
-    const preliminary=mergeCorrection(extractRequirements(msg),{});
+    const preliminary=mergeCorrection(chat?withConversationFacts(extractRequirements(msg),conversationFacts([msg])):extractRequirements(msg),{});
     const created=await client.query(`INSERT INTO enquiries(public_ref,source,message,contact_name,contact_email,form_payload,conversation_id,extracted,agent_flags)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id,public_ref,source,status`,
      [publicRef,source,msg,name,email,form?JSON.stringify(form):null,chat?conversationId:null,JSON.stringify(preliminary),JSON.stringify({preliminary:true,requiresClarification:true})]);
@@ -99,11 +101,25 @@ export class EnquiriesService {
   const q=await this.db.query(`SELECT id FROM enquiries e WHERE conversation_id=$1 AND EXISTS
     (SELECT 1 FROM enquiry_messages m WHERE m.enquiry_id=e.id AND m.role='GUEST' AND m.body=$2)`,[conversationId,text]);
   if(!q.rows[0])throw new NotFoundException('Saved concierge message not found');
-  const history=(await this.db.query(`SELECT body FROM enquiry_messages WHERE enquiry_id=$1 AND role='GUEST' ORDER BY created_at DESC,id DESC LIMIT 8`,[q.rows[0].id])).rows.reverse();
-  // Do not treat earlier guest messages as the current question. In particular,
-  // local keyword fallback must not repeat stale requests for dates/guest counts.
-  const priorContext=history.length>1?history.slice(0,-1).map(x=>x.body).join('\n'):'';
-  const answer=await guestAdvisory(text,priorContext);
+  // Always reconstruct cumulative facts from the authoritative PostgreSQL transcript.
+  // The same conversation_id / enquiry_id links every message across API calls.
+  const history=(await this.db.query(`SELECT body FROM enquiry_messages WHERE enquiry_id=$1 AND role='GUEST' ORDER BY created_at,id`,[q.rows[0].id])).rows.map(r=>String(r.body));
+  const facts=conversationFacts(history);
+  let venueStatus:VenueScheduleObservation|undefined;
+  if(/\b(?:availability|available|vacant|check\s+(?:the\s+)?(?:date|venue|lawn|room))\b/i.test(text) && facts.dateIso && facts.requestedVenue){
+   // Read-only availability observation; resource slot unit-count is NOT guest capacity.
+   try{
+    const slot=await this.db.query(`SELECT s.capacity,s.blocked,COALESCE(SUM(a.quantity),0)::int AS reserved
+      FROM resource_slots s JOIN resource_types t ON t.id=s.resource_id
+      LEFT JOIN resource_allocations a ON a.slot_id=s.id
+      WHERE t.code=$1 AND s.slot_date=$2::date AND s.slot_name='DAY'
+      GROUP BY s.id`,[facts.requestedVenue,facts.dateIso]);
+    const claims=await this.db.query(`SELECT 1 FROM exclusive_venue_claims WHERE venue_code=$1 AND event_date=$2::date LIMIT 1`,[facts.requestedVenue,facts.dateIso]);
+    venueStatus=claims.rowCount?'BOOKED':!slot.rows[0]?'NOT_CONFIGURED':
+      slot.rows[0].blocked||Number(slot.rows[0].capacity)<=Number(slot.rows[0].reserved)?'BLOCKED':'OPEN_SLOT';
+   }catch{venueStatus='UNAVAILABLE';}
+  }
+  const answer=await guestAdvisory(text,history.slice(0,-1).join('\n'),facts,venueStatus);
   return {conciergeReply:answer.text,conciergeMode:answer.mode};
  }
  async list(category?:string){return (await this.db.query(`SELECT e.id,e.public_ref,e.source,e.contact_name,e.category,e.routing_lane,e.agent_confidence,e.created_at,e.status,e.message,e.contact_email,e.extracted,e.manual_extracted,e.form_payload,u.display_name AS assigned_to,
