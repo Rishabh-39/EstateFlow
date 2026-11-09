@@ -100,9 +100,10 @@ export class EnquiriesService {
     (SELECT 1 FROM enquiry_messages m WHERE m.enquiry_id=e.id AND m.role='GUEST' AND m.body=$2)`,[conversationId,text]);
   if(!q.rows[0])throw new NotFoundException('Saved concierge message not found');
   const history=(await this.db.query(`SELECT body FROM enquiry_messages WHERE enquiry_id=$1 AND role='GUEST' ORDER BY created_at DESC,id DESC LIMIT 8`,[q.rows[0].id])).rows.reverse();
-  // The latest message remains explicit so the AI does not answer a stale question.
-  const contextual=history.length>1?`Earlier guest messages for context:\n${history.slice(0,-1).map(x=>x.body).join('\n')}\nLatest guest question:\n${text}`:text;
-  const answer=await guestAdvisory(contextual);
+  // Do not treat earlier guest messages as the current question. In particular,
+  // local keyword fallback must not repeat stale requests for dates/guest counts.
+  const priorContext=history.length>1?history.slice(0,-1).map(x=>x.body).join('\n'):'';
+  const answer=await guestAdvisory(text,priorContext);
   return {conciergeReply:answer.text,conciergeMode:answer.mode};
  }
  async list(category?:string){return (await this.db.query(`SELECT e.id,e.public_ref,e.source,e.contact_name,e.category,e.routing_lane,e.agent_confidence,e.created_at,e.status,e.message,e.contact_email,e.extracted,e.manual_extracted,e.form_payload,u.display_name AS assigned_to,

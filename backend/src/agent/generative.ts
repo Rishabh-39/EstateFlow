@@ -3,6 +3,7 @@
  * Gemini is opt-in with a backend-only secret. Without a key, deterministic grounded copy is used.
  */
 import { ollamaEnabled, ollamaWording } from './ollama';
+import { extractRequirements } from './classifier';
 export type WordingMode = 'gemini' | 'ollama' | 'local-guided';
 const MODEL = 'gemini-2.5-flash';
 const FACTS = [
@@ -15,8 +16,20 @@ const FACTS = [
 
 export function localGuestGuidance(message: string): string {
   const t = message.toLowerCase();
+  const extracted=extractRequirements(message);
   if (/\b(?:complaint|dirty|bad service|refund|unhappy|issue)\b/.test(t))
     return 'I’m sorry you had this experience. I’ve forwarded your concern for team review, including a General Manager escalation where appropriate. Please share your booking reference or the relevant date so the team can investigate. No refund has been initiated automatically.';
+  // Prioritize facts in this latest message over keyword matches from conversation history.
+  // This is a safe intake acknowledgement, NOT a verdict from the feasibility engine.
+  if (extracted.dateText || extracted.guestCount!==null) {
+    const known=[extracted.dateText?`the date ${extracted.dateText}`:null,
+      extracted.guestCount!==null?`${extracted.guestCount.toLocaleString('en-IN')} guests`:null].filter(Boolean);
+    const needs=[!extracted.dateText?'the event date':null,
+      extracted.guestCount===null?'the expected guest count':null,
+      !extracted.requestedVenue?'the venue you need':null].filter(Boolean);
+    const details=needs.length?` Please confirm ${needs.join(', ')}.`:'';
+    return `I've recorded ${known.join(' and ')}.${details} This enquiry requires staff to check verified venue, dining, parking, staffing and any room needs for that date. Capacity and feasibility are not verified; no reservation has been made.`;
+  }
   if (/\b(?:vegetarian|vegan|jain|cater|dining|food|meal|menu)\b/.test(t))
     return 'We can record your vegetarian or other dietary requirements for the catering team. Please share the event date, guest count and any allergies or Jain requirements. The exact menu and availability need staff confirmation; I won’t invent menu options.';
   if (/\b(?:lawn|venue|capacity|\d+\s*guests?|pax)\b/.test(t)) {
@@ -73,11 +86,11 @@ export async function staffDraftWording(message:string,context:string):Promise<s
   // Gemini remains available only when explicitly selected; no silent external fallback.
   return process.env.AI_PROVIDER==='gemini'?optionalGemini('staff-draft',message,context):null;
 }
-export async function guestAdvisory(message:string):Promise<{text:string;mode:WordingMode}> {
+export async function guestAdvisory(message:string, priorContext=''):Promise<{text:string;mode:WordingMode}> {
   if(ollamaEnabled()){
-    const generated=await ollamaWording('advisory',message);
+    const generated=await ollamaWording('advisory',message,priorContext);
     return generated?{text:generated,mode:'ollama'}:{text:localGuestGuidance(message),mode:'local-guided'};
   }
-  const generated=process.env.AI_PROVIDER==='gemini'?await optionalGemini('advisory',message):null;
+  const generated=process.env.AI_PROVIDER==='gemini'?await optionalGemini('advisory',message,priorContext):null;
   return generated?{text:generated,mode:'gemini'}:{text:localGuestGuidance(message),mode:'local-guided'};
 }

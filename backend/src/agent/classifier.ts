@@ -55,9 +55,27 @@ function makeIso(day:number,month:number,year:number):string|null{
  return validIso(s)?s:null;
 }
 const matchNumber=(text:string,pattern:RegExp):number|null=>{const m=pattern.exec(text);return m?Number(m[1]):null;};
+/** Accept both '20000 guests' and 'number of guests = 20000'. Commas are separators, not decimals. */
+function extractGuestCount(text:string):number|null {
+ const quantity='(\\d{1,3}(?:,\\d{3}){1,2}|\\d{1,6})';
+ // Deliberately anchor labels: an event date or phone number is not a guest count.
+ const after=new RegExp('\\b(?:number\\s+of\\s+|total\\s+|expected\\s+)?(?:guests?|attendees?|people|persons?|pax|delegates?)\\s*(?:=|:|is\\s+|are\\s+)?\\s*'+quantity+'\\b','i').exec(text);
+ const before=new RegExp('\\b'+quantity+'\\s*(?:guests?|attendees?|people|persons?|pax|delegates?)\\b','i').exec(text);
+ const raw=after?.[1]??before?.[1];
+ if(!raw)return null;
+ const number=Number(raw.replace(/,/g,''));
+ return Number.isSafeInteger(number)&&number>0?number:null;
+}
 function exactDates(text:string):{dateText:string|null;checkIn:string|null;checkOut:string|null}{
  const isos=[...text.matchAll(/\b20\d{2}-(?:0[1-9]|1[0-2])-(?:[0-2]\d|3[01])\b/g)].map(x=>x[0]);
  if(isos.length===2 && isos.every(validIso) && isos[0]<isos[1])return {dateText:isos.join(' to '),checkIn:isos[0],checkOut:isos[1]};
+ // India-facing enquiry form: unambiguous day/month/year, e.g. 25/11/2026.
+ // A single event date is NOT automatically an overnight stay or check-out date.
+ const numeric=[...text.matchAll(/\b([0-3]?\d)\/([01]?\d)\/(20\d{2})\b/g)]
+  .map(m=>({raw:m[0],iso:makeIso(Number(m[1]),Number(m[2]),Number(m[3]))})).filter(x=>x.iso);
+ if(numeric.length===2 && numeric[0].iso!<numeric[1].iso!)
+  return {dateText:numeric.map(x=>x.raw).join(' to '),checkIn:numeric[0].iso,checkOut:numeric[1].iso};
+ if(numeric.length===1)return {dateText:numeric[0].raw,checkIn:null,checkOut:null};
  // Explicit-year date range, e.g. "14-16 Nov 2027" or "14 to 16 November 2027".
  const r=/\b(\d{1,2})\s*(?:-|–|—|to)\s*(\d{1,2})\s+(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+(20\d{2})\b/i;
  const m=r.exec(text);
@@ -76,7 +94,7 @@ function budget(text:string):number|null{
 }
 export function extractRequirements(text:string):Extraction {
  const dates=exactDates(text);
- let guestCount=matchNumber(text,/\b(\d{1,5})\s*(?:guests?|people|persons?|attendees?|pax|delegates?)\b/i)
+ let guestCount=extractGuestCount(text)
   ??matchNumber(text,/\bteam\s+of\s+(\d{1,5})\b/i);
  if(guestCount===null){
   const adults=matchNumber(text,/\b(\d{1,3})\s*adults?\b/i);
