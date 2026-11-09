@@ -1,0 +1,109 @@
+      - name: Upload frontend build
+        uses: actions/upload-artifact@v4
+        with:
+          name: estateflow-frontend-build
+          path: frontend-output.tar.gz
+          if-no-files-found: error
+          retention-days: 3
+
+  deploy:
+    name: Deploy to AWS Lightsail
+    needs: build-and-test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: production
+    steps:
+      - name: Download tested frontend build
+        uses: actions/download-artifact@v4
+        with:
+          name: estateflow-frontend-build
+
+      - name: Configure SSH authentication and trusted host key
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.AWS_SSH_KNOWN_HOSTS }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          test -n "$SSH_KNOWN_HOSTS"
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$HOME/.ssh/id_lightsail"
+          chmod 600 "$HOME/.ssh/id_lightsail"
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > "$HOME/.ssh/known_hosts"
+          chmod 600 "$HOME/.ssh/known_hosts"
+
+      - name: Copy tested frontend artifact to AWS
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.AWS_SSH_HOST }}
+          SSH_USER: ${{ secrets.AWS_SSH_USER }}
+        run: |
+          set -euo pipefail
+          test -n "$SSH_HOST" && test -n "$SSH_USER"
+          scp -i "$HOME/.ssh/id_lightsail" \
+            -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            frontend-output.tar.gz \
+            "$SSH_USER@$SSH_HOST:/home/ubuntu/estateflow-frontend-${GITHUB_SHA}.tar.gz"
+
+      - name: Update API and frontend on AWS
+        shell: bash
+        env:
+          SSH_HOST: ${{ secrets.AWS_SSH_HOST }}
+          SSH_USER: ${{ secrets.AWS_SSH_USER }}
+        run: |
+          set -euo pipefail
+          ssh -i "$HOME/.ssh/id_lightsail" \
+            -o StrictHostKeyChecking=yes -o BatchMode=yes \
+            "$SSH_USER@$SSH_HOST" "EXPECTED_SHA=$GITHUB_SHA bash -se" <<'REMOTE'
+          set -euo pipefail
+          cd /home/ubuntu/EstateFlow
+          git pull --ff-only origin main
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+
+          # These private server overrides keep the restored database and Ollama enabled.
+          for file in compose.prod.yml compose.api.yml compose.db-cutover.yml compose.ollama.yml compose.ai-enable.yml; do
+            test -f "$file" || { echo "Required server file missing: $file" >&2; exit 1; }
+          done
+
+          sudo docker compose \
+            -f compose.prod.yml \
+            -f compose.api.yml \
+            -f compose.db-cutover.yml \
+            -f compose.ollama.yml \
+            -f compose.ai-enable.yml \
+            config --quiet
+
+          # Rebuild only the API. Do not modify database or Ollama containers.
+          sudo docker compose \
+            -f compose.prod.yml \
+            -f compose.api.yml \
+            -f compose.db-cutover.yml \
+            -f compose.ollama.yml \
+            -f compose.ai-enable.yml \
+            up -d --no-deps --build api
+
+          for attempt in $(seq 1 15); do
+            if curl -fsS http://127.0.0.1:4000/health/ready >/dev/null; then break; fi
+            sleep 3
+          done
+          curl -fsS http://127.0.0.1:4000/health/ready
+
+          # Keep the existing bind-mounted .output directory in place.
+          # Back it up before replacing files; do not recreate the container's mount.
+          artifact="/home/ubuntu/estateflow-frontend-${EXPECTED_SHA}.tar.gz"
+          test -f "$artifact"
+          test -d frontend/.output
+          backup="/home/ubuntu/estateflow-frontend-before-${EXPECTED_SHA}.tar.gz"
+          sudo tar -czf "$backup" -C frontend .output
+          sudo find frontend/.output -mindepth 1 -maxdepth 1 -exec rm -rf -- {} +
+          sudo tar -xzf "$artifact" -C frontend
+          sudo docker restart estateflow-frontend
+
+          # Fail the workflow if the public website or API is not reachable.
+          curl -fsS https://13-205-218-25.sslip.io/api/health/ready
+          curl -fsS -o /dev/null https://13-205-218-25.sslip.io/
+          sudo docker ps --format 'table {{.Names}}\t{{.Status}}'
+          echo "Deployed commit: $(git rev-parse --short HEAD)"
+          REMOTE
