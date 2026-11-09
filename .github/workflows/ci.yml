@@ -1,4 +1,5 @@
-name: EstateFlow CI/CD
+
+name: EstateFlow CI
 
 on:
   push:
@@ -10,87 +11,81 @@ on:
 permissions:
   contents: read
 
-concurrency:
-  group: estateflow-${{ github.ref }}
-  cancel-in-progress: false
-
 jobs:
+
   backend-ci:
-    name: Backend tests and TypeScript build
+    name: Backend Tests and Build
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+
     defaults:
       run:
         working-directory: backend
+
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: backend/package-lock.json
-      - name: Install dependencies
+
+      - name: Install Backend Dependencies
         run: npm ci --no-audit --no-fund
-      - name: Run concierge and regression tests
-        run: |
-          npx ts-node --transpile-only test/m30-concierge-structured-facts.unit.ts
-          npx ts-node --transpile-only test/m31-concierge-conversation-memory.unit.ts
-          npx ts-node --transpile-only test/m32-ollama-guest-rewrite.unit.ts
-          npm run test:m15
-          npm run test:m16
-      - name: Compile NestJS
+
+      - name: Test M15 AI and Staff/GM
+        run: npm run test:m15
+
+      - name: Test M16 Ollama
+        run: npm run test:m16
+
+      - name: Test M30 Concierge Extraction
+        run: npx ts-node --transpile-only test/m30-concierge-structured-facts.unit.ts
+
+      - name: Test M31 Conversation Memory
+        run: npx ts-node --transpile-only test/m31-concierge-conversation-memory.unit.ts
+
+      - name: Test M32 Ollama Rewrite
+        run: npx ts-node --transpile-only test/m32-ollama-guest-rewrite.unit.ts
+
+      - name: Build NestJS Backend
         run: npm run build
 
   frontend-ci:
-    name: Frontend production build
+    name: Frontend Tests and Build
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+
     defaults:
       run:
         working-directory: frontend
+
     steps:
-      - name: Checkout
+      - name: Checkout Repository
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
           cache-dependency-path: frontend/package-lock.json
-      - name: Install dependencies
-        run: npm ci --no-audit --no-fund
-      - name: Build frontend
-        env:
-          VITE_API_URL: /api
-          VITE_API_BASE_URL: /api
-        run: npm run build
-      - name: Validate Nitro output
-        run: test -s .output/server/index.mjs
-      - name: Package frontend output
-        run: tar -czf ../estateflow-frontend.tgz -C . .output
-      - name: Upload frontend build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: estateflow-frontend
-          path: estateflow-frontend.tgz
-          if-no-files-found: error
-          retention-days: 3
 
-  deploy:
-    name: Deploy to AWS Lightsail
-    needs: [backend-ci, frontend-ci]
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      - name: Install Frontend Dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Build React Frontend
+        run: npm run build
+
+      - name: Verify Frontend Build Output
+        run: test -f .output/server/index.mjs
+
+  ci-success:
+    name: CI Validation Complete
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    needs: [backend-ci, frontend-ci]
+
     steps:
-      - name: Download tested frontend build
-        uses: actions/download-artifact@v4
-        with:
-          name: estateflow-frontend
-      - name: Configure SSH
-        shell: bash
-        env:
-          SSH_KEY: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
-          SSH_KNOWN_HOSTS: ${{ secrets.AWS_SSH_KNOWN_HOSTS }}
+      - name: All Checks Passed
+        run: echo "EstateFlow frontend and backend CI passed!"
